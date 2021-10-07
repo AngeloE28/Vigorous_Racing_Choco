@@ -32,6 +32,13 @@ public class PlayerInputs : MonoBehaviour
     [SerializeField] private float groundRayLength = 0.5f;    
     [SerializeField] private Transform[] groundRayPoint;
 
+    [Header("Wheels")]
+    [SerializeField] private float maxWheelTurnAngle;
+    [SerializeField] private Transform frontLeftWheel, frontRightWheel; // Turning the wheel left and right
+    [SerializeField] private Transform frontLeftWheelModel;
+    [SerializeField] private Transform frontRightWheelModel;
+    [SerializeField] private Transform[] backWheels;
+
 
     private void Awake()
     {
@@ -97,9 +104,33 @@ public class PlayerInputs : MonoBehaviour
                                                   turnInput * turnStrengthInAir * Time.deltaTime,
                                                   0.0f));
         }
+        
+        // Procedurally Animate the wheels
+        WheelTurns(turnInput, inputAccelerate, maxWheelTurnAngle, turnStrengthOnGround);
 
         // Car follows the carController thats moving
         transform.position = carControllerRB.transform.position;        
+    }
+
+    private void WheelTurns(float turnInput, float accelerateInput, float turnAngle, float turnStrength)
+    {
+        // Turn both wheels in the direction the car is turning
+        frontLeftWheel.localRotation = Quaternion.Euler(frontLeftWheel.localRotation.eulerAngles.x,
+                                                        (turnInput * turnAngle),
+                                                        frontLeftWheel.localRotation.eulerAngles.z);
+
+        frontRightWheel.localRotation = Quaternion.Euler(frontRightWheel.localRotation.eulerAngles.x,
+                                                        (turnInput * turnAngle),
+                                                        frontRightWheel.localRotation.eulerAngles.z);
+
+        float turnMultiplier = 10.0f;
+        // Spin the wheel back or forward
+        frontLeftWheelModel.Rotate(-Vector3.up * accelerateInput * turnStrength * turnMultiplier * Time.deltaTime);
+        frontRightWheelModel.Rotate(Vector3.up * accelerateInput * turnStrength * turnMultiplier * Time.deltaTime);
+        foreach (Transform t in backWheels)
+        {
+            t.Rotate(Vector3.right * accelerateInput * turnStrength * turnMultiplier * Time.deltaTime);
+        }
     }
 
     private void CarEngine()
