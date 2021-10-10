@@ -6,9 +6,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputs : MonoBehaviour
 {
-    // Inputs
-    private PlayerInputActions playerInputActions;
-
     [SerializeField] private PlayerCamera cameraController;
 
     // Player colliders and controllers
@@ -22,15 +19,29 @@ public class PlayerInputs : MonoBehaviour
     [SerializeField] private float reverseAccel, accelMultiplier;
     [SerializeField] private float gravityForce, gravityMultiplier, dragOnGround, dragInAir; // Controls the added gravity to the car
     [SerializeField] private float turnStrengthOnGround, turnStrengthInAir; // Maximum turn angles
+    private float speedController;
+    private float defaultSpeedControllerVal = 1.0f;
     public float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
 
-    [Header("Boost Values")]
-    [SerializeField] private float flipBoostAmount = 500.0f;
-
     // Inputs
+    private PlayerInputActions playerInputActions;
+    private float inputAccelerate;
     private float speedInput, turnInput;
 
+    [Header("Boost Values")]
+    // Drift boost
+    [SerializeField] private float speedReduction = 0.8f;
+    [SerializeField] private float maxDriftBoostTime = 10.0f;
+    [SerializeField] private float driftBoostSpeedVal = 4.0f;
+    private bool allowBoost = false;
+    private float defaultTurnControllerVal = 1.0f;
+    private float driftTurnMultiplier = 1.5f;
+    private float driftTotal;
+    private float turnController;
+    private bool isDrifiting = false;    
+
     // Flip boost
+    [SerializeField] private float flipBoostAmount = 6.0f;
     private float spinTotal;
     private bool allowFlipBoost = false;
 
@@ -54,13 +65,16 @@ public class PlayerInputs : MonoBehaviour
     private void Awake()
     {
         playerInputActions = new PlayerInputActions();
-        playerInputActions.Player.Enable();        
+        playerInputActions.Player.Enable();
     }
 
 
     // Start is called before the first frame update
     void Start()
     {
+        turnController = defaultTurnControllerVal; // Default to 1
+        speedController = defaultSpeedControllerVal; // Default to 1
+
         // Unparent the car controller that will be followed
         carControllerRB.transform.parent = null;
     }
@@ -68,7 +82,8 @@ public class PlayerInputs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PlayerInput();
+        PlayerInput();        
+        
     }
 
     private void FixedUpdate()
@@ -82,29 +97,31 @@ public class PlayerInputs : MonoBehaviour
         // Speed is 0.0f when not moving, which is when there is no inputs
         speedInput = 0.0f;        
 
-        float inputAccelerate = playerInputActions.Player.Accelerate.ReadValue<float>();
+        inputAccelerate = playerInputActions.Player.Accelerate.ReadValue<float>();
         
         // Going forward
         if (inputAccelerate > 0)
         {
-            speedInput = inputAccelerate * forwardAccel * accelMultiplier;
+            speedInput = inputAccelerate * forwardAccel * accelMultiplier * speedController;
             wheelSpinDirection = 1;
         }
         // Reversing
         else if (inputAccelerate < 0)
         {
-            speedInput = inputAccelerate * reverseAccel * accelMultiplier;
+            speedInput = inputAccelerate * reverseAccel * accelMultiplier * speedController;
             wheelSpinDirection = -1;
         }
 
         // Turn input
         turnInput = playerInputActions.Player.Turning.ReadValue<float>();
 
+
+
         // Can only turn on the grounded if player is not moving
         if (isGrounded && speedInput != 0.0f)
         {
             transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0.0f,
-                                                  turnInput * turnStrengthOnGround * inputAccelerate * Time.deltaTime,
+                                                  turnInput * turnStrengthOnGround * inputAccelerate * turnController *Time.deltaTime,
                                                   0.0f));
         }
 
@@ -118,9 +135,12 @@ public class PlayerInputs : MonoBehaviour
                                                   0.0f));
         }
         
+        // Apply a boost for drifting
+        DriftBoost(turnInput);
+
         // Apply a boost after spinning around a certain amount
-        FlipBoost(stickInput);        
-        
+        FlipBoost(stickInput);
+
         // Procedurally Animate the wheels
         WheelTurns(turnInput, maxWheelTurnAngle);
 
@@ -194,59 +214,106 @@ public class PlayerInputs : MonoBehaviour
         }
     }
 
+    private void DriftBoost(float turnInput)
+    {
+        float driftButton = playerInputActions.Player.Drift.ReadValue<float>();       
+
+        isDrifiting = (driftButton > 0) ? true : false;        
+
+        if (isGrounded)
+        {
+            if (isDrifiting)
+            {
+                driftTotal += Mathf.Abs(turnInput * Time.deltaTime);
+                driftTotal = Mathf.Clamp(driftTotal, 0.0f, maxDriftBoostTime);
+                speedController = speedReduction;
+                turnController = driftTurnMultiplier;
+            }
+            else
+            {
+                // Reset turncontroller
+                turnController = defaultTurnControllerVal;
+                if (driftTotal > 0)
+                {
+                    // Start countdown
+                    driftTotal -= 1 * Time.deltaTime;
+                    allowBoost = true;
+                }
+                if (driftTotal <= 0)
+                {
+                    // Can't boost anymore
+                    allowBoost = false;                    
+                    driftTotal = 0.0f;
+                }
+            }
+            // Apply boost
+            Boost(allowBoost, driftBoostSpeedVal, driftTotal);
+        }
+    }
+
     private void FlipBoost(Vector2 stickInput)
     {
         // Provide a boost after rotating a certain amount        
-        float boostFlipRequirement = 130.0f;        
-        
+        float boostFlipRequirement = 300.0f;
+
+        float resetFlipBoostTime = 1.0f;
+
         // Increment the amount of spin
         if (!isGrounded)                   
-            spinTotal += stickInput.magnitude;
+            spinTotal += stickInput.magnitude * turnStrengthInAir *Time.deltaTime;
 
-        // Check if player cna boost or not
-        if (spinTotal > boostFlipRequirement)
-            allowFlipBoost = true;
-        else
-            allowFlipBoost = false;        
+        print(spinTotal);
 
+        // Check if player can boost or not
+        allowFlipBoost = (spinTotal > boostFlipRequirement) ? true : false;        
+        
         // Execute an action if player can boost or not
-        if (allowFlipBoost)
-        {                       
-            if (isGrounded)
-            {                
-                StartCoroutine(ResetFlipBoost());  
-            }
-        }
-        else
+        if (isGrounded)
         {
-            if (isGrounded)
+            if (allowFlipBoost)
             {
+                // Boost
+                Boost(allowFlipBoost, flipBoostAmount, resetFlipBoostTime);                
+                Invoke("ResetFlipBoost", resetFlipBoostTime);            
+            }
+            else
+            {                
+                // Reset the spin total
                 if (spinTotal > 0 && spinTotal < boostFlipRequirement)
                     spinTotal = 0.0f;
             }
         }
     }
 
-    private IEnumerator ResetFlipBoost()
+    private void Boost(bool isBoosting, float boostAmount, float boostTime)
     {
-        float resetFlipBoostTime = 0.1f;
-        float resetCamTime = 0.3f;        
+        if(isBoosting)
+        {
+            // Apply boost 
+            speedController = driftBoostSpeedVal;
 
-        yield return new WaitForSeconds(resetFlipBoostTime);
+            // Make sure player is constantly moving
+            if (inputAccelerate == 0)
+                inputAccelerate = 1.0f;
 
-        // Boost and boost effect
-        cameraController.SetCamPos(true);
-        carControllerRB.AddForce(transform.forward * flipBoostAmount, ForceMode.Impulse);
-
-        // Reset values
-        allowFlipBoost = false;
-        spinTotal = 0.0f;
-        Invoke("ResetCamPos", resetCamTime);
+            // Camera effect
+            cameraController.SetCamPos(true);            
+            Invoke("ResetBoost", boostTime);
+        }        
     }
 
-    private void ResetCamPos()
+    private void ResetBoost()
     {
+        // Reset values
+        speedController = defaultSpeedControllerVal;
         cameraController.SetCamPos(false);
+    }
+
+    private void ResetFlipBoost()
+    {    
+        // Reset values
+        spinTotal = 0.0f;                
+        allowFlipBoost = false;
     }
 
     public bool GetIsGroundedState()
@@ -254,4 +321,11 @@ public class PlayerInputs : MonoBehaviour
         // Get the isGrounded boolean
         return isGrounded;
     }
+
+    public PlayerInputActions GetPlayerInputActions()
+    {
+        // Returns the player input actions
+        return playerInputActions;
+    }
+        
 }

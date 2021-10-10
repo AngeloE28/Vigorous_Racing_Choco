@@ -40,6 +40,22 @@ public class PlayerInputActions : IInputActionCollection
                     ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""LookAround"",
+                    ""type"": ""Value"",
+                    ""id"": ""3b5dda97-a2fe-45b6-ad95-e33814c040af"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Drift"",
+                    ""type"": ""Value"",
+                    ""id"": ""3e347b0f-9c1f-432a-bcf8-a1f28ed67685"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -295,6 +311,28 @@ public class PlayerInputActions : IInputActionCollection
                     ""action"": ""Turning"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""db775634-9141-420c-81c7-f7d1494beaf5"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""LookAround"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4d8959d8-8c79-4811-8ad4-ebbb57c8a805"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Drift"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -727,6 +765,8 @@ public class PlayerInputActions : IInputActionCollection
         m_Player_Move = m_Player.GetAction("Move");
         m_Player_Accelerate = m_Player.GetAction("Accelerate");
         m_Player_Turning = m_Player.GetAction("Turning");
+        m_Player_LookAround = m_Player.GetAction("LookAround");
+        m_Player_Drift = m_Player.GetAction("Drift");
         // UI
         m_UI = asset.GetActionMap("UI");
         m_UI_Navigate = m_UI.GetAction("Navigate");
@@ -792,6 +832,8 @@ public class PlayerInputActions : IInputActionCollection
     private readonly InputAction m_Player_Move;
     private readonly InputAction m_Player_Accelerate;
     private readonly InputAction m_Player_Turning;
+    private readonly InputAction m_Player_LookAround;
+    private readonly InputAction m_Player_Drift;
     public struct PlayerActions
     {
         private PlayerInputActions m_Wrapper;
@@ -799,6 +841,8 @@ public class PlayerInputActions : IInputActionCollection
         public InputAction @Move => m_Wrapper.m_Player_Move;
         public InputAction @Accelerate => m_Wrapper.m_Player_Accelerate;
         public InputAction @Turning => m_Wrapper.m_Player_Turning;
+        public InputAction @LookAround => m_Wrapper.m_Player_LookAround;
+        public InputAction @Drift => m_Wrapper.m_Player_Drift;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -817,6 +861,12 @@ public class PlayerInputActions : IInputActionCollection
                 Turning.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnTurning;
                 Turning.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnTurning;
                 Turning.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnTurning;
+                LookAround.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLookAround;
+                LookAround.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLookAround;
+                LookAround.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLookAround;
+                Drift.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
+                Drift.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
+                Drift.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -830,6 +880,12 @@ public class PlayerInputActions : IInputActionCollection
                 Turning.started += instance.OnTurning;
                 Turning.performed += instance.OnTurning;
                 Turning.canceled += instance.OnTurning;
+                LookAround.started += instance.OnLookAround;
+                LookAround.performed += instance.OnLookAround;
+                LookAround.canceled += instance.OnLookAround;
+                Drift.started += instance.OnDrift;
+                Drift.performed += instance.OnDrift;
+                Drift.canceled += instance.OnDrift;
             }
         }
     }
@@ -988,6 +1044,8 @@ public class PlayerInputActions : IInputActionCollection
         void OnMove(InputAction.CallbackContext context);
         void OnAccelerate(InputAction.CallbackContext context);
         void OnTurning(InputAction.CallbackContext context);
+        void OnLookAround(InputAction.CallbackContext context);
+        void OnDrift(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
