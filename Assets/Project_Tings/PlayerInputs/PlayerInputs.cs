@@ -21,7 +21,7 @@ public class PlayerInputs : MonoBehaviour
     [SerializeField] private float turnStrengthOnGround, turnStrengthInAir; // Maximum turn angles
     private float speedController;
     private float defaultSpeedControllerVal = 1.0f;
-    public float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
+    [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
 
     // Inputs
     private PlayerInputActions playerInputActions;
@@ -51,7 +51,7 @@ public class PlayerInputs : MonoBehaviour
     [Header("Raycast System")]
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundRayLength = 0.5f;    
-    [SerializeField] private Transform[] groundRayPoint;
+    [SerializeField] private Transform[] groundRayPoints;
 
     [Header("Wheels")]
     [SerializeField] private float maxWheelTurnAngle;
@@ -152,18 +152,18 @@ public class PlayerInputs : MonoBehaviour
     {
         isGrounded = false;
         // Check if the ray is colliding with any object with the Ground layermask
-        Vector3[] normals = new Vector3[groundRayPoint.Length];
-        RaycastHit[] hits = new RaycastHit[groundRayPoint.Length];
-        for (int i = 0; i < groundRayPoint.Length; i++)
+        Vector3[] normals = new Vector3[groundRayPoints.Length];
+        RaycastHit[] hits = new RaycastHit[groundRayPoints.Length];
+        for (int i = 0; i < groundRayPoints.Length; i++)
         {
-            if (Physics.Raycast(groundRayPoint[i].position, -transform.up, out hits[i], groundRayLength, groundMask))
+            if (Physics.Raycast(groundRayPoints[i].position, -transform.up, out hits[i], groundRayLength, groundMask))
             {
                 isGrounded = true;
                 normals[i] = hits[i].normal;
             }
         }
         // Average the normals
-        Vector3 avgNormal = (normals[0] + normals[1] + normals[2] + normals[3]) / groundRayPoint.Length;
+        Vector3 avgNormal = (normals[0] + normals[1] + normals[2] + normals[3]) / groundRayPoints.Length;
 
         // Rotate the car
         Quaternion targetRotation;
@@ -260,9 +260,7 @@ public class PlayerInputs : MonoBehaviour
 
         // Increment the amount of spin
         if (!isGrounded)                   
-            spinTotal += stickInput.magnitude * turnStrengthInAir *Time.deltaTime;
-
-        print(spinTotal);
+            spinTotal += stickInput.magnitude * turnStrengthInAir *Time.deltaTime;        
 
         // Check if player can boost or not
         allowFlipBoost = (spinTotal > boostFlipRequirement) ? true : false;        
