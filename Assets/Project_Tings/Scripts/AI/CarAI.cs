@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CarAI : MonoBehaviour
@@ -20,6 +18,7 @@ public class CarAI : MonoBehaviour
     [SerializeField] private float turnAngle;
     [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
     [SerializeField] private float maxDistFromWaypoint = 7.5f;
+    private float aiSpeed;
 
     // AI Controls
     private float aiTurnInput;
@@ -35,7 +34,7 @@ public class CarAI : MonoBehaviour
     [SerializeField] private Transform frontLeftWheel, frontRightWheel; // Turning the wheel left and right
     [SerializeField] private Transform frontLeftWheelModel;
     [SerializeField] private Transform frontRightWheelModel;
-    [SerializeField] private Transform[] backWheels;    
+    [SerializeField] private Transform[] backWheels;
 
 
     // Start is called before the first frame update
@@ -45,7 +44,7 @@ public class CarAI : MonoBehaviour
         pathNodes = new List<Transform>();
 
         // Add waypoints
-        for(int i = 0; i< wayPoints.Length; i++)
+        for (int i = 0; i < wayPoints.Length; i++)
         {
             if (wayPoints[i] != path.transform)
                 pathNodes.Add(wayPoints[i]);
@@ -91,7 +90,7 @@ public class CarAI : MonoBehaviour
         // Smooth out rotation
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * smoothCarRotationVal);
 
-        if(isGrounded)
+        if (isGrounded)
         {
             carAIRb.drag = dragOnGround;
             AIDrive();
@@ -110,7 +109,7 @@ public class CarAI : MonoBehaviour
     private void CheckWayPointDistance()
     {
         // Check ai distance from next waypoint and loop through each waypoint
-        if(Vector3.Distance(transform.position, pathNodes[currentNode].position) < maxDistFromWaypoint)
+        if (Vector3.Distance(transform.position, pathNodes[currentNode].position) < maxDistFromWaypoint)
         {
             // Check if its last waypoint
             if (currentNode == pathNodes.Count - 1)
@@ -125,8 +124,8 @@ public class CarAI : MonoBehaviour
         Vector3 moveDir = (pathNodes[currentNode].position - transform.position).normalized;
 
         Vector3 desiredVelocity = moveDir * forwardAccel * accelMultiplier;
-
         ApplySteer(desiredVelocity);
+        aiSpeed = carAIRb.velocity.magnitude;
     }
 
     private void ApplySteer(Vector3 desiredVelocity)
@@ -174,5 +173,10 @@ public class CarAI : MonoBehaviour
         {
             t.Rotate(Vector3.right * carAIRb.velocity.magnitude * turnMultiplier * Time.deltaTime);
         }
+    }
+
+    public Rigidbody GetController()
+    {
+        return carAIRb;
     }
 }

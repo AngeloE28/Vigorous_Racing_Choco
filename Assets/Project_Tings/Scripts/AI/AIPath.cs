@@ -5,7 +5,6 @@ using UnityEngine;
 public class AIPath : MonoBehaviour
 {
     [SerializeField] private Color lineColor;
-
     private List<Transform> pathNodes;
 
     private void OnDrawGizmos()

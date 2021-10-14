@@ -8,10 +8,9 @@ public class PlayerInputs : MonoBehaviour
 {
     [SerializeField] private PlayerCamera cameraController;
 
-    // Player colliders and controllers
-    [Header("Colliders and Controller")]
-    [SerializeField] private Rigidbody carControllerRB;
-    [SerializeField] private SphereCollider carControllerCollider;
+    // Player controllers
+    [Header("Car Controller")]
+    [SerializeField] private Rigidbody carControllerRB;    
 
     [Header("Movement Values")]    
     // Accelerations
@@ -24,21 +23,22 @@ public class PlayerInputs : MonoBehaviour
     [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
 
     // Inputs
-    private PlayerInputActions playerInputActions;
-    private float inputAccelerate;
+    private PlayerInputActions playerInputActions;    
     private float speedInput, turnInput;
 
     [Header("Boost Values")]
     // Drift boost
     [SerializeField] private float speedReduction = 0.8f;
-    [SerializeField] private float maxDriftBoostTime = 10.0f;
+    [SerializeField] private float maxDriftBoostTime = 2.0f;
+    [SerializeField] private float minDriftBoostTime = 0.75f;
     [SerializeField] private float driftBoostSpeedVal = 4.0f;
     private bool allowBoost = false;
     private float defaultTurnControllerVal = 1.0f;
     private float driftTurnMultiplier = 1.5f;
     private float driftTotal;
     private float turnController;
-    private bool isDrifiting = false;    
+    private bool isDrifiting = false;
+    private bool isBoosting = false;
 
     // Flip boost
     [SerializeField] private float flipBoostAmount = 6.0f;
@@ -88,7 +88,8 @@ public class PlayerInputs : MonoBehaviour
 
     private void FixedUpdate()
     {
-        CarEngine();       
+        CarEngine();
+        print(driftTotal);
     }
 
 
@@ -97,7 +98,7 @@ public class PlayerInputs : MonoBehaviour
         // Speed is 0.0f when not moving, which is when there is no inputs
         speedInput = 0.0f;        
 
-        inputAccelerate = playerInputActions.Player.Accelerate.ReadValue<float>();
+        float inputAccelerate = playerInputActions.Player.Accelerate.ReadValue<float>();
         
         // Going forward
         if (inputAccelerate > 0)
@@ -218,34 +219,48 @@ public class PlayerInputs : MonoBehaviour
     {
         float driftButton = playerInputActions.Player.Drift.ReadValue<float>();       
 
-        isDrifiting = (driftButton > 0) ? true : false;        
-
+        isDrifiting = (driftButton > 0) ? true : false;
+        
         if (isGrounded)
         {
             if (isDrifiting)
             {
-                driftTotal += Mathf.Abs(turnInput * Time.deltaTime);
-                driftTotal = Mathf.Clamp(driftTotal, 0.0f, maxDriftBoostTime);
+                
+                driftTotal += Mathf.Abs(turnInput * Time.deltaTime);               
+
+                if (driftTotal > maxDriftBoostTime)
+                    driftTotal = maxDriftBoostTime;
+
                 speedController = speedReduction;
-                turnController = driftTurnMultiplier;
+                turnController = driftTurnMultiplier;                         
             }
             else
             {
                 // Reset turncontroller
                 turnController = defaultTurnControllerVal;
-                if (driftTotal > 0)
+
+                if (driftTotal > minDriftBoostTime)
+                {                    
+                    allowBoost = true;
+                }
+                if (allowBoost && driftTotal > 0)
                 {
                     // Start countdown
                     driftTotal -= 1 * Time.deltaTime;
-                    allowBoost = true;
                 }
+
                 if (driftTotal <= 0)
                 {
                     // Can't boost anymore
-                    allowBoost = false;                    
+                    allowBoost = false;
+                    driftTotal = 0.0f;
+                }
+                if(driftTotal < minDriftBoostTime)
+                {
                     driftTotal = 0.0f;
                 }
             }
+            
             // Apply boost
             Boost(allowBoost, driftBoostSpeedVal, driftTotal);
         }
@@ -287,13 +302,15 @@ public class PlayerInputs : MonoBehaviour
     {
         if(isBoosting)
         {
+            this.isBoosting = isBoosting;
+
             // Apply boost 
             speedController = driftBoostSpeedVal;
 
             // Make sure player is constantly moving
-            if (inputAccelerate == 0)
-                inputAccelerate = 1.0f;
-
+            if (Mathf.Abs(speedInput) != 1)
+                speedInput = wheelSpinDirection * forwardAccel * accelMultiplier * speedController;            
+            
             // Camera effect
             cameraController.SetCamPos(true);            
             Invoke("ResetBoost", boostTime);
@@ -304,6 +321,7 @@ public class PlayerInputs : MonoBehaviour
     {
         // Reset values
         speedController = defaultSpeedControllerVal;
+        isBoosting = false;
         cameraController.SetCamPos(false);
     }
 
@@ -320,10 +338,29 @@ public class PlayerInputs : MonoBehaviour
         return isGrounded;
     }
 
+    public bool GetIsBoosting()
+    {
+        return isBoosting;
+    }
+
+    public bool GetIsDrifting()
+    {
+        return isDrifiting;
+    }
+
     public PlayerInputActions GetPlayerInputActions()
     {
         // Returns the player input actions
         return playerInputActions;
     }
         
+    public float GetSpeedInput()
+    {
+        return speedInput;
+    }
+
+    public Rigidbody GetCarController()
+    {
+        return carControllerRB;
+    }
 }

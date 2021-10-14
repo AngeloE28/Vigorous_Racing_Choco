@@ -5,64 +5,161 @@ using System;
 
 public struct CakeCar
 {
-    public Transform transform;
+    public GameObject car;
     public bool overLapped;
 }
 
 public class PortalTeleporter : MonoBehaviour
 {
-    [SerializeField] private Transform portalExit;
-    private List<CakeCar> cakeCarDetails; // The details of what goes through the portal    
-    private List<GameObject> cakeCars;// What goes through the portal    
+    [SerializeField] private Transform portalParent;
+    [SerializeField] private Transform portalExitParent;
+    [SerializeField] private Transform portalExitCollider;
+    [SerializeField] private bool turnCarAround = false;
+    [SerializeField] private GameObject[] allCars;
+    private Dictionary<int, CakeCar> cakeCars; // Controls which car to teleport    
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        cakeCars = new List<GameObject>();
-        cakeCarDetails = new List<CakeCar>();
+        cakeCars = new Dictionary<int, CakeCar>();
+
+        // Add all the cars
+        for(int i = 0; i < allCars.Length; i++)
+        {           
+            CakeCar aiCar;
+            aiCar.car = allCars[i];
+            aiCar.overLapped = false;
+            cakeCars.Add(i, aiCar);
+        }
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void FixedUpdate()
     {
-        for(int i = 0; i<cakeCars.Count; i++)
+        // Loop through all the cars
+        for(int i = 0; i < allCars.Length; i++)
         {
-            if(cakeCarDetails[i].overLapped)
+            CakeCar currentCar = cakeCars[i];
+            if(currentCar.overLapped)
             {
-                CakeCar currentCar;
-                currentCar.transform = cakeCarDetails[i].transform;
-                Vector3 portalToCar = currentCar.transform.position - transform.position;
-                float dotProduct = Vector3.Dot(transform.up, portalToCar);
+                Vector3 portalToCar = currentCar.car.transform.position - transform.position;
+                float dotProduct = Vector3.Dot(transform.forward, portalToCar);
 
-                // Player has moved across the portal
+                // Car has moved across the portal
                 if (dotProduct < 0.0f)
                 {
-                    // Teleport player
-                    float rotationDiff = -Quaternion.Angle(transform.rotation, portalExit.rotation);
-                    rotationDiff += 180;
-                    currentCar.transform.Rotate(Vector3.up, rotationDiff);
+                    // Teleport car
+                    var m = portalExitParent.transform.localToWorldMatrix * portalParent.worldToLocalMatrix * currentCar.car.transform.localToWorldMatrix;
+                    float rotationDiff = -Quaternion.Angle(transform.rotation, portalExitParent.rotation);
+                    
+                    // Check if this portal should turn the car around
+                    if (turnCarAround)
+                        rotationDiff += 180;                    
+                    
+                    // Get the player and ai scripts
+                    var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
+                    var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
 
-                    Vector3 posOffset = Quaternion.Euler(0.0f, rotationDiff, 0.0f) * portalToCar;
-                    currentCar.transform.position = portalExit.position + posOffset;
+                    // Check for player
+                    if (playerController != null && aiController == null)
+                    {
+                        // Rotate the player
+                        currentCar.car.transform.Rotate(Vector3.up, rotationDiff);
 
-                    currentCar.overLapped = false;
-                    cakeCarDetails[i] = currentCar;
+                        // Teleport the player
+                        Vector3 posOffset = Quaternion.Euler(0.0f, rotationDiff, 0.0f) * portalToCar;
+                        playerController.GetCarController().gameObject.transform.position = portalExitCollider.position + posOffset;
+                        currentCar.overLapped = false;
+                    }
+                    // Check for ai
+                    else if (aiController != null && playerController == null)
+                    {
+                        // Rotate the player
+                        currentCar.car.transform.Rotate(Vector3.up, rotationDiff);
+
+                        // Teleport the player
+                        Vector3 posOffset = Quaternion.Euler(0.0f, rotationDiff, 0.0f) * portalToCar;
+                        aiController.GetController().gameObject.transform.position = portalExitCollider.position + posOffset;
+                        currentCar.overLapped = false;
+                    }
+                    else
+                        continue; // Unknown gameObject, skip this iteration
                 }
             }
-            //cakeCarDetails.Remove(cakeCarDetails[i]);
-        }  
-        
+            cakeCars[i] = currentCar; // Update the value of the car
+        }        
     }
 
     private void OnTriggerEnter(Collider other)
     {
+
         if (other.tag == "Car")
         {
-            CakeCar car;
-            car.transform = other.transform;
-            car.overLapped = true;
-            cakeCarDetails.Add(car);
-            cakeCars.Add(other.gameObject);
+            for (int i = 0; i < allCars.Length; i++)
+            {
+                CakeCar currentCar = cakeCars[i];
+
+                // Get player and ai script
+                var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
+                var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
+                // Check for player
+                if (playerController != null && aiController == null)
+                {
+                    if (playerController.GetCarController().gameObject == other.gameObject)
+                    {
+                        currentCar.overLapped = true;
+                        cakeCars[i] = currentCar;
+                        continue; // Its the player, skip this iteration
+                    }
+                }
+                // Check for ai
+                else if (aiController != null && playerController == null)
+                {
+                    if (aiController.GetController().gameObject == other.gameObject)
+                    {
+                        currentCar.overLapped = true;
+                        cakeCars[i] = currentCar;
+                        continue;
+                    }
+                }
+                else
+                    continue; // Unknown gameObject, skip this iteration
+            }
         }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if(other.tag == "Car")
+        {
+            for (int i = 0; i < allCars.Length; i++)
+            {
+                CakeCar currentCar = cakeCars[i];
+                // Get player and ai script
+                var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
+                var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
+                // Check for player
+                if (playerController != null && aiController == null)
+                {
+                    if (playerController.GetCarController().gameObject == other.gameObject)
+                    {
+                        currentCar.overLapped = false;
+                        cakeCars[i] = currentCar;
+                        continue; // Its the player, skip this iteration
+                    }
+                }
+                // Check for ai
+                else if (aiController != null && playerController == null)
+                {
+                    if (aiController.GetController().gameObject == other.gameObject)
+                    {
+                        cakeCars[i] = currentCar;
+                        currentCar.overLapped = true;
+                        continue;
+                    }
+                }
+                else
+                    continue; // Unknown gameObject, skip this iteration
+            }
+        }        
     }
 }
