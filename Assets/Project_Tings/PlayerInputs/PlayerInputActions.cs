@@ -56,6 +56,22 @@ public class PlayerInputActions : IInputActionCollection
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""ResetOrientation"",
+                    ""type"": ""Button"",
+                    ""id"": ""e5ea394c-4ce8-4736-91ac-0384c77f12d0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Dissolve"",
+                    ""type"": ""Button"",
+                    ""id"": ""a6046684-1a49-4de6-a900-9e2762a08e35"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -331,6 +347,28 @@ public class PlayerInputActions : IInputActionCollection
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Drift"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ef08963d-2be2-4f83-843c-cac0237066df"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""ResetOrientation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""03141105-9e7f-4229-99ff-0da88c91fb08"",
+                    ""path"": ""<Keyboard>/k"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Dissolve"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -767,6 +805,8 @@ public class PlayerInputActions : IInputActionCollection
         m_Player_Turning = m_Player.GetAction("Turning");
         m_Player_LookAround = m_Player.GetAction("LookAround");
         m_Player_Drift = m_Player.GetAction("Drift");
+        m_Player_ResetOrientation = m_Player.GetAction("ResetOrientation");
+        m_Player_Dissolve = m_Player.GetAction("Dissolve");
         // UI
         m_UI = asset.GetActionMap("UI");
         m_UI_Navigate = m_UI.GetAction("Navigate");
@@ -834,6 +874,8 @@ public class PlayerInputActions : IInputActionCollection
     private readonly InputAction m_Player_Turning;
     private readonly InputAction m_Player_LookAround;
     private readonly InputAction m_Player_Drift;
+    private readonly InputAction m_Player_ResetOrientation;
+    private readonly InputAction m_Player_Dissolve;
     public struct PlayerActions
     {
         private PlayerInputActions m_Wrapper;
@@ -843,6 +885,8 @@ public class PlayerInputActions : IInputActionCollection
         public InputAction @Turning => m_Wrapper.m_Player_Turning;
         public InputAction @LookAround => m_Wrapper.m_Player_LookAround;
         public InputAction @Drift => m_Wrapper.m_Player_Drift;
+        public InputAction @ResetOrientation => m_Wrapper.m_Player_ResetOrientation;
+        public InputAction @Dissolve => m_Wrapper.m_Player_Dissolve;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -867,6 +911,12 @@ public class PlayerInputActions : IInputActionCollection
                 Drift.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
                 Drift.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
                 Drift.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrift;
+                ResetOrientation.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetOrientation;
+                ResetOrientation.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetOrientation;
+                ResetOrientation.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetOrientation;
+                Dissolve.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDissolve;
+                Dissolve.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDissolve;
+                Dissolve.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDissolve;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -886,6 +936,12 @@ public class PlayerInputActions : IInputActionCollection
                 Drift.started += instance.OnDrift;
                 Drift.performed += instance.OnDrift;
                 Drift.canceled += instance.OnDrift;
+                ResetOrientation.started += instance.OnResetOrientation;
+                ResetOrientation.performed += instance.OnResetOrientation;
+                ResetOrientation.canceled += instance.OnResetOrientation;
+                Dissolve.started += instance.OnDissolve;
+                Dissolve.performed += instance.OnDissolve;
+                Dissolve.canceled += instance.OnDissolve;
             }
         }
     }
@@ -1046,6 +1102,8 @@ public class PlayerInputActions : IInputActionCollection
         void OnTurning(InputAction.CallbackContext context);
         void OnLookAround(InputAction.CallbackContext context);
         void OnDrift(InputAction.CallbackContext context);
+        void OnResetOrientation(InputAction.CallbackContext context);
+        void OnDissolve(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

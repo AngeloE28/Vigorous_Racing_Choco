@@ -18,9 +18,11 @@ public class PlayerInputs : MonoBehaviour
     [SerializeField] private float reverseAccel, accelMultiplier;
     [SerializeField] private float gravityForce, gravityMultiplier, dragOnGround, dragInAir; // Controls the added gravity to the car
     [SerializeField] private float turnStrengthOnGround, turnStrengthInAir; // Maximum turn angles
+    [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
     private float speedController;
     private float defaultSpeedControllerVal = 1.0f;
-    [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
+    private bool flipCar = false;
+    private float notGroundedTimer = 8.0f;
 
     // Inputs
     private PlayerInputActions playerInputActions;    
@@ -64,8 +66,10 @@ public class PlayerInputs : MonoBehaviour
 
     private void Awake()
     {
+        // Setup player input actions and subscribe to necessary action delegates
         playerInputActions = new PlayerInputActions();
         playerInputActions.Player.Enable();
+        playerInputActions.Player.ResetOrientation.performed += ResetOrientation;        
     }
 
 
@@ -83,13 +87,11 @@ public class PlayerInputs : MonoBehaviour
     void Update()
     {
         PlayerInput();        
-        
     }
 
     private void FixedUpdate()
     {
-        CarEngine();
-        print(driftTotal);
+        CarEngine();        
     }
 
 
@@ -146,12 +148,16 @@ public class PlayerInputs : MonoBehaviour
         WheelTurns(turnInput, maxWheelTurnAngle);
 
         // Car follows the carController thats moving
-        transform.position = carControllerRB.transform.position;        
+        transform.position = carControllerRB.transform.position;
+
+        // Manually flip the car
+        if (flipCar)
+            ResetCarRotation();        
     }
       
     private void CarEngine()
     {
-        isGrounded = false;
+        isGrounded = false;        
         // Check if the ray is colliding with any object with the Ground layermask
         Vector3[] normals = new Vector3[groundRayPoints.Length];
         RaycastHit[] hits = new RaycastHit[groundRayPoints.Length];
@@ -176,6 +182,7 @@ public class PlayerInputs : MonoBehaviour
         // Check if car is grounded
         if (isGrounded)
         {
+            notGroundedTimer = 8.0f;
             // Update the drage when on the ground
             carControllerRB.drag = dragOnGround;
 
@@ -191,6 +198,14 @@ public class PlayerInputs : MonoBehaviour
             // Increase the gravity applied to the car
             carControllerRB.drag = dragInAir;
             carControllerRB.AddForce(Vector3.up * -gravityForce * gravityMultiplier);
+
+            // Auto flip the player if its not grounded for a set time
+            if (notGroundedTimer > 0.0f)
+                notGroundedTimer -= Time.deltaTime;
+            else
+                flipCar = true;
+
+            print(notGroundedTimer);
         }
     }
 
@@ -315,6 +330,29 @@ public class PlayerInputs : MonoBehaviour
             cameraController.SetCamPos(true);            
             Invoke("ResetBoost", boostTime);
         }        
+    }
+
+    private void ResetOrientation(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+            flipCar = true;
+    }
+
+    private void ResetCarRotation()
+    {
+        float carFlipRotationVal = 5.0f;
+        // Rotate the car to reset the rotation
+        Quaternion targetRotations;
+        // Get the euler angles
+        Vector3 eulerRotation = transform.rotation.eulerAngles;
+
+        // Get target rotation
+        targetRotations = Quaternion.Euler(0.0f, eulerRotation.y, 0.0f);
+
+        // Rotate the car
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotations, Time.deltaTime * carFlipRotationVal);
+        if (transform.rotation == targetRotations)
+            flipCar = false;
     }
 
     private void ResetBoost()
