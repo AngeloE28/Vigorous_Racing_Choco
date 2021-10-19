@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInputs : MonoBehaviour
+public class PlayerInputs : MonoBehaviour, IPushBack
 {
     [SerializeField] private PlayerCamera cameraController;
 
@@ -86,7 +86,7 @@ public class PlayerInputs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PlayerInput();        
+        PlayerInput();       
     }
 
     private void FixedUpdate()
@@ -203,9 +203,7 @@ public class PlayerInputs : MonoBehaviour
             if (notGroundedTimer > 0.0f)
                 notGroundedTimer -= Time.deltaTime;
             else
-                flipCar = true;
-
-            print(notGroundedTimer);
+                flipCar = true;           
         }
     }
 
@@ -400,5 +398,12 @@ public class PlayerInputs : MonoBehaviour
     public Rigidbody GetCarController()
     {
         return carControllerRB;
+    }
+
+    public void PushBack(float backwardForce, float upwardForce, float forceMult)
+    {
+        // Push the car backwards
+        carControllerRB.AddForce(transform.up * (upwardForce * forceMult));
+        carControllerRB.AddForce(-transform.forward * (backwardForce * forceMult));
     }
 }

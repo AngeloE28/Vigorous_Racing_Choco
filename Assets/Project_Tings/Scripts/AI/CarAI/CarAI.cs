@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class CarAI : MonoBehaviour
+public class CarAI : MonoBehaviour, IPushBack
 {
     [SerializeField] private Rigidbody carAIRb;
 
@@ -178,5 +178,12 @@ public class CarAI : MonoBehaviour
     public Rigidbody GetController()
     {
         return carAIRb;
+    }
+
+    public void PushBack(float backwardForce, float upwardForce, float forceMult)
+    {
+        // Push the car backwards
+        carAIRb.AddForce(transform.up * (upwardForce * forceMult));
+        carAIRb.AddForce(-transform.forward * (backwardForce * forceMult));
     }
 }
