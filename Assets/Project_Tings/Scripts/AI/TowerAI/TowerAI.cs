@@ -6,6 +6,7 @@ using UnityEngine;
 public class TowerAI : MonoBehaviour
 {
     [Header("Tower Stats")]
+    [SerializeField] private float updateFreq = 0.5f;
     [SerializeField] private float towerRange = 15.0f;
     [SerializeField] private float turnSpeed = 8.0f;
     [SerializeField] private float fireRate = 1.0f;
@@ -23,7 +24,7 @@ public class TowerAI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        InvokeRepeating("UpdateTarget", 0.0f, 0.5f);   
+        InvokeRepeating(nameof(UpdateTarget), 0.0f, updateFreq);
     }
 
     // Update is called once per frame

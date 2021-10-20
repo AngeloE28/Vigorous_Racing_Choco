@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class CarAI : MonoBehaviour, IPushBack
+public class CarAI : MonoBehaviour, IPushBack, ISlowDown
 {
     [SerializeField] private Rigidbody carAIRb;
 
@@ -17,8 +17,9 @@ public class CarAI : MonoBehaviour, IPushBack
     [SerializeField] private float gravityForce, gravityMultiplier, dragOnGround, dragInAir;
     [SerializeField] private float turnAngle;
     [SerializeField] private float smoothCarRotationVal = 15.0f; // For smooth rotations, when driving on slopes
-    [SerializeField] private float maxDistFromWaypoint = 7.5f;
-    private float aiSpeed;
+    [SerializeField] private float maxDistFromWaypoint = 7.5f;    
+    private float speedController = 1.0f;
+    private float defaultSpeedControllerVal = 1.0f;
 
     // AI Controls
     private float aiTurnInput;
@@ -121,11 +122,11 @@ public class CarAI : MonoBehaviour, IPushBack
 
     private void AIDrive()
     {
+        // Drive towards waypoint and apply steering forces
         Vector3 moveDir = (pathNodes[currentNode].position - transform.position).normalized;
 
-        Vector3 desiredVelocity = moveDir * forwardAccel * accelMultiplier;
-        ApplySteer(desiredVelocity);
-        aiSpeed = carAIRb.velocity.magnitude;
+        Vector3 desiredVelocity = moveDir * forwardAccel * accelMultiplier * speedController;
+        ApplySteer(desiredVelocity);        
     }
 
     private void ApplySteer(Vector3 desiredVelocity)
@@ -147,7 +148,7 @@ public class CarAI : MonoBehaviour, IPushBack
         steer = steer / carAIRb.mass;
 
         // Clamp steer to a max value
-        float maxForce = forwardAccel * accelMultiplier;
+        float maxForce = forwardAccel * accelMultiplier * speedController;
         steer = Vector3.ClampMagnitude(steer, maxForce);
 
         // Add steering
@@ -185,5 +186,17 @@ public class CarAI : MonoBehaviour, IPushBack
         // Push the car backwards
         carAIRb.AddForce(transform.up * (upwardForce * forceMult));
         carAIRb.AddForce(-transform.forward * (backwardForce * forceMult));
+    }
+
+    public void SlowDown()
+    {
+        // Player slows down to a quarter speed
+        speedController = 0.25f;
+    }
+
+    public void ReturnToOriginalSpeed()
+    {
+        // Return to original speed
+        speedController = defaultSpeedControllerVal;
     }
 }

@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInputs : MonoBehaviour, IPushBack
+public class PlayerInputs : MonoBehaviour, IPushBack, ISlowDown
 {
+    [Header("Controllers and Managers")]
     [SerializeField] private PlayerCamera cameraController;
+    private GamepadVibration gamepadVib;    
 
     // Player controllers
     [Header("Car Controller")]
@@ -40,7 +42,7 @@ public class PlayerInputs : MonoBehaviour, IPushBack
     private float driftTotal;
     private float turnController;
     private bool isDrifiting = false;
-    private bool isBoosting = false;
+    private bool isBoosting = false;    
 
     // Flip boost
     [SerializeField] private float flipBoostAmount = 6.0f;
@@ -69,7 +71,9 @@ public class PlayerInputs : MonoBehaviour, IPushBack
         // Setup player input actions and subscribe to necessary action delegates
         playerInputActions = new PlayerInputActions();
         playerInputActions.Player.Enable();
-        playerInputActions.Player.ResetOrientation.performed += ResetOrientation;        
+        playerInputActions.Player.ResetOrientation.performed += ResetOrientation;
+
+        gamepadVib = GetComponent<GamepadVibration>();
     }
 
 
@@ -233,12 +237,11 @@ public class PlayerInputs : MonoBehaviour, IPushBack
         float driftButton = playerInputActions.Player.Drift.ReadValue<float>();       
 
         isDrifiting = (driftButton > 0) ? true : false;
-        
+
         if (isGrounded)
         {
             if (isDrifiting)
-            {
-                
+            {                   
                 driftTotal += Mathf.Abs(turnInput * Time.deltaTime);               
 
                 if (driftTotal > maxDriftBoostTime)
@@ -267,10 +270,12 @@ public class PlayerInputs : MonoBehaviour, IPushBack
                     // Can't boost anymore
                     allowBoost = false;
                     driftTotal = 0.0f;
+                    gamepadVib.SetShakeGamepadState(false);
                 }
                 if(driftTotal < minDriftBoostTime)
                 {
                     driftTotal = 0.0f;
+                    gamepadVib.SetShakeGamepadState(false);
                 }
             }
             
@@ -300,7 +305,7 @@ public class PlayerInputs : MonoBehaviour, IPushBack
             {
                 // Boost
                 Boost(allowFlipBoost, flipBoostAmount, resetFlipBoostTime);                
-                Invoke("ResetFlipBoost", resetFlipBoostTime);            
+                Invoke(nameof(ResetFlipBoost), resetFlipBoostTime);            
             }
             else
             {                
@@ -313,21 +318,25 @@ public class PlayerInputs : MonoBehaviour, IPushBack
 
     private void Boost(bool isBoosting, float boostAmount, float boostTime)
     {
-        if(isBoosting)
+
+        if (isBoosting)
         {
             this.isBoosting = isBoosting;
-
+            
             // Apply boost 
             speedController = driftBoostSpeedVal;
 
-            // Make sure player is constantly moving
+            // Make sure player is constantly moving forward
             if (Mathf.Abs(speedInput) != 1)
-                speedInput = wheelSpinDirection * forwardAccel * accelMultiplier * speedController;            
-            
+                speedInput = 1 * forwardAccel * accelMultiplier * speedController;
+
             // Camera effect
-            cameraController.SetCamPos(true);            
-            Invoke("ResetBoost", boostTime);
-        }        
+            cameraController.SetCamPos(true);
+            Invoke(nameof(ResetBoost), boostTime);
+
+            // Gamepad shake
+            gamepadVib.SetShakeGamepadState(true);
+        }
     }
 
     private void ResetOrientation(InputAction.CallbackContext context)
@@ -359,6 +368,7 @@ public class PlayerInputs : MonoBehaviour, IPushBack
         speedController = defaultSpeedControllerVal;
         isBoosting = false;
         cameraController.SetCamPos(false);
+        gamepadVib.SetShakeGamepadState(false);
     }
 
     private void ResetFlipBoost()
@@ -366,6 +376,7 @@ public class PlayerInputs : MonoBehaviour, IPushBack
         // Reset values
         spinTotal = 0.0f;                
         allowFlipBoost = false;
+        gamepadVib.SetShakeGamepadState(false);
     }
 
     public bool GetIsGroundedState()
@@ -405,5 +416,17 @@ public class PlayerInputs : MonoBehaviour, IPushBack
         // Push the car backwards
         carControllerRB.AddForce(transform.up * (upwardForce * forceMult));
         carControllerRB.AddForce(-transform.forward * (backwardForce * forceMult));
+    }
+
+    public void SlowDown()
+    {
+        // Player slows down to a quarter speed
+        speedController = 0.25f;
+    }
+
+    public void ReturnToOriginalSpeed()
+    {
+        // Return to original speed
+        speedController = defaultSpeedControllerVal;
     }
 }

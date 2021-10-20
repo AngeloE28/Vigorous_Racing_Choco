@@ -19,21 +19,28 @@ public class PlayerCamera : MonoBehaviour
     [Header("Camera Rotations")]
     private float smoothVal = 3.0f;
     [SerializeField] private float groundSmoothVal = 3.0f;
+    [SerializeField] private float driftSmoothVal = 2.5f;
     [SerializeField] private float airSmoothVal = 0.1f;
 
-    [Header("Camera LookAround")]
-    [SerializeField] private float returnToPosSmoothVal = 10.0f;
+    [Header("Camera LookAround")]    
     [SerializeField] private float maxHorizontalAngle = 360.0f;
     [SerializeField] private float maxVerticalAngle = 120.0f;
-    
+
+    private void Start()
+    {
+        smoothVal = groundSmoothVal;
+    }
+
     private void Update()
     {
         // Only follow the rotation of the y axis and ignore the x and z axis
-        if (carController.GetIsGroundedState())
+        if (carController.GetIsGroundedState() && carController.GetIsDrifting())
+            smoothVal = driftSmoothVal;
+        if (carController.GetIsGroundedState() && !carController.GetIsDrifting())
             smoothVal = groundSmoothVal;
         if (!carController.GetIsGroundedState())
             smoothVal = airSmoothVal;
-
+        
         // Move the camera position if the player is boosting or finished boosting
         float boostFOVMultiplier = 5.0f;
         if (camBoostPos)
