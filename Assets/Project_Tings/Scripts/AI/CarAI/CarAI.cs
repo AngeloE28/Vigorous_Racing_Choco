@@ -9,6 +9,8 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
     [SerializeField] private Transform path;
     private List<Transform> pathNodes;
     private int currentNode = 0;
+    private int lapCounter = 0;
+
 
     [Header("Movement Values")]
     // Acceleration
@@ -41,6 +43,7 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
     // Start is called before the first frame update
     void Start()
     {
+        lapCounter = 0;
         Transform[] wayPoints = path.GetComponentsInChildren<Transform>();
         pathNodes = new List<Transform>();
 
@@ -59,7 +62,7 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
     void Update()
     {
         // Car follows the car controller
-        transform.position = carAIRb.transform.position;
+        transform.position = carAIRb.transform.position;        
     }
 
     private void FixedUpdate()
@@ -114,7 +117,10 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
         {
             // Check if its last waypoint
             if (currentNode == pathNodes.Count - 1)
+            {
                 currentNode = 0;
+                lapCounter++;
+            }
             else
                 currentNode++;
         }
