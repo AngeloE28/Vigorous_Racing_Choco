@@ -9,10 +9,10 @@ public class SingleCheckpoint : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Check for player
-        var p = other.GetComponent<PlayerInputs>();
-        if(p != null)
+        var car = other.GetComponent<ICakeCar>();
+        if(car != null)
         {
-            cps.WentThroughCheckpoint(this);
+            cps.WentThroughCheckpoint(this, other.transform);
         }
     }
 

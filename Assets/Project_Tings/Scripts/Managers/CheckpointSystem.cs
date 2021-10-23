@@ -4,13 +4,22 @@ using UnityEngine;
 
 public class CheckpointSystem : MonoBehaviour
 {
+    [SerializeField] private List<Transform> cars;
+    [SerializeField] private List<int> lapCounters;
     private List<SingleCheckpoint> checkPoints;
-    [SerializeField] private int nextCheckPointIndex;
-    [SerializeField] private int lapCounter;
+    private List<int> nextCheckPointIndexes;    
 
     private void Awake()
     {
         this.checkPoints = new List<SingleCheckpoint>();
+        nextCheckPointIndexes = new List<int>();
+        lapCounters = new List<int>();
+        
+        foreach(var t in cars)
+        {
+            nextCheckPointIndexes.Add(0);
+            lapCounters.Add(0);            
+        }
 
         Transform checkPoints = transform.Find("CheckPoint");
         foreach(Transform cp in checkPoints)
@@ -19,22 +28,52 @@ public class CheckpointSystem : MonoBehaviour
             checkPoint.SetTrackCheckpiont(this);
             this.checkPoints.Add(checkPoint);
         }
+        
+        CalcCarCheckpointDist();        
+    }    
 
-        nextCheckPointIndex = 0;
-        lapCounter = 0;
+    private void FixedUpdate()
+    {
+        CalcCarCheckpointDist();
     }
 
-    public void WentThroughCheckpoint(SingleCheckpoint cp)
+    private void CalcCarCheckpointDist()
+    {        
+        // Calculate the distance of each car to the next checkpoint
+        CarDistToCheckPoint(0);
+        CarDistToCheckPoint(1);
+        CarDistToCheckPoint(2);        
+    }
+
+    public void WentThroughCheckpoint(SingleCheckpoint cp, Transform car)
     {
-        if (checkPoints.IndexOf(cp) == nextCheckPointIndex)
+        int nextCPIndex = this.nextCheckPointIndexes[cars.IndexOf(car)];
+        int lapCounter = this.lapCounters[cars.IndexOf(car)];
+        if (checkPoints.IndexOf(cp) == nextCPIndex)
         {
-            if (nextCheckPointIndex == checkPoints.Count - 1)
+            if (nextCPIndex == checkPoints.Count - 1)
             {
-                nextCheckPointIndex = 0;
+                nextCPIndex = 0;
                 lapCounter++;
             }
             else
-                nextCheckPointIndex++;
+                nextCPIndex++;
+
+            this.nextCheckPointIndexes[cars.IndexOf(car)] = nextCPIndex;
+            this.lapCounters[cars.IndexOf(car)] = lapCounter;
+
+            cars[cars.IndexOf(car)].gameObject.GetComponent<ICakeCar>().SetLapIndex(lapCounter);
+            cars[cars.IndexOf(car)].gameObject.GetComponent<ICakeCar>().SetNextCheckPointIndex(nextCPIndex);
+        }
+    }    
+
+    private void CarDistToCheckPoint(int carIndex)
+    {
+        var car = cars[carIndex].GetComponent<ICakeCar>();
+        float carDist = Vector3.Distance(cars[carIndex].position, checkPoints[nextCheckPointIndexes[carIndex]].transform.position);
+        if (car != null)
+        {
+            car.SetDistToNextCheckPoint(carDist);
         }
     }
 }

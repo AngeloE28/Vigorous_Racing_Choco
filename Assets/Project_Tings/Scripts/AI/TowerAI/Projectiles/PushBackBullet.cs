@@ -33,10 +33,10 @@ public class PushBackBullet : MonoBehaviour
         
     private void OnTriggerEnter(Collider other)
     {
-        IPushBack carPushBack = other.GetComponent<IPushBack>();
-        if(carPushBack != null)
+        ICakeCar car = other.GetComponent<ICakeCar>();
+        if(car != null)
         {
-            carPushBack.PushBack(backwardForce, upwardForce, forceMult);
+            car.PushBack(backwardForce, upwardForce, forceMult);
             Destroy(gameObject);
         }
     }

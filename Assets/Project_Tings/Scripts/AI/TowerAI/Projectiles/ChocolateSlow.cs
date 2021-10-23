@@ -16,7 +16,7 @@ public class ChocolateSlow : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(FindTargets), 0.0f, 0.5f);
+        InvokeRepeating(nameof(FireChocolate), 0.0f, 0.5f);
     }
 
     private void Update()
@@ -34,23 +34,23 @@ public class ChocolateSlow : MonoBehaviour
     {        
         if (activate)
         {
-            ISlowDown carSlowDown = other.GetComponent<ISlowDown>();
-            if (carSlowDown != null)                            
-                carSlowDown.SlowDown();
+            ICakeCar car = other.GetComponent<ICakeCar>();
+            if (car != null)                            
+                car.SlowDown();
             
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        ISlowDown carSlowDown = other.GetComponent<ISlowDown>();
-        if (carSlowDown != null)        
-            carSlowDown.ReturnToOriginalSpeed();        
+        ICakeCar car = other.GetComponent<ICakeCar>();
+        if (car != null)        
+            car.ReturnToOriginalSpeed();        
     }
 
-    private void FindTargets()
+    private void FireChocolate()
     {
-        GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");        
+        GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");
         List<GameObject> cs = new List<GameObject>();
 
         foreach(GameObject c in cars)

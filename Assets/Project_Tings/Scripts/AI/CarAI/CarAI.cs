@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class CarAI : MonoBehaviour, IPushBack, ISlowDown
+public class CarAI : MonoBehaviour, ICakeCar
 {
     [SerializeField] private Rigidbody carAIRb;
 
     // Path
     [SerializeField] private Transform path;
     private List<Transform> pathNodes;
-    private int currentNode = 0;
-    private int lapCounter = 0;
-
+    private int currentNode = 0;    
+    private float distToNextCheckPoint;
+    private int nextCheckpointIndex;
+    private int lapIndex;
 
     [Header("Movement Values")]
     // Acceleration
@@ -40,10 +41,8 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
     [SerializeField] private Transform[] backWheels;
 
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        lapCounter = 0;
         Transform[] wayPoints = path.GetComponentsInChildren<Transform>();
         pathNodes = new List<Transform>();
 
@@ -52,8 +51,12 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
         {
             if (wayPoints[i] != path.transform)
                 pathNodes.Add(wayPoints[i]);
-        }
+        }     
+    }
 
+    // Start is called before the first frame update
+    void Start()
+    {      
         // Unparent car controller
         carAIRb.transform.parent = null;
     }
@@ -106,7 +109,7 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
             // Increase gravity
             carAIRb.AddForce(Vector3.up * -gravityForce * gravityMultiplier);
         }
-
+        
         CheckWayPointDistance();
     }
 
@@ -118,8 +121,7 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
             // Check if its last waypoint
             if (currentNode == pathNodes.Count - 1)
             {
-                currentNode = 0;
-                lapCounter++;
+                currentNode = 0;                
             }
             else
                 currentNode++;
@@ -204,5 +206,34 @@ public class CarAI : MonoBehaviour, IPushBack, ISlowDown
     {
         // Return to original speed
         speedController = defaultSpeedControllerVal;
+    }
+
+    public float GetNextCheckPointDist()
+    {        
+        return distToNextCheckPoint;
+    }
+
+    public int GetLapIndex()
+    {
+        return lapIndex;
+    }
+    public int GetCheckPointIndex()
+    {
+        return nextCheckpointIndex;
+    }
+
+    public void SetLapIndex(int i)
+    {
+        lapIndex = i;
+    }
+
+    public void SetNextCheckPointIndex(int i)
+    {
+        nextCheckpointIndex = i;
+    }
+
+    public void SetDistToNextCheckPoint(float dist)
+    {
+        distToNextCheckPoint = dist;
     }
 }

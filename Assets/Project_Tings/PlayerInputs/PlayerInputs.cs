@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInputs : MonoBehaviour, IPushBack, ISlowDown
+public class PlayerInputs : MonoBehaviour, ICakeCar
 {
     [Header("Controllers and Managers")]
     [SerializeField] private PlayerCamera cameraController;
-    private GamepadVibration gamepadVib;    
+    private GamepadVibration gamepadVib;
+    private float distToNextCheckPoint;
+    private int nextCheckpointIndex;
+    private int lapIndex;
 
     // Player controllers
     [Header("Car Controller")]
@@ -73,7 +76,7 @@ public class PlayerInputs : MonoBehaviour, IPushBack, ISlowDown
         playerInputActions.Player.Enable();
         playerInputActions.Player.ResetOrientation.performed += ResetOrientation;
 
-        gamepadVib = GetComponent<GamepadVibration>();
+        gamepadVib = GetComponent<GamepadVibration>();     
     }
 
 
@@ -97,7 +100,6 @@ public class PlayerInputs : MonoBehaviour, IPushBack, ISlowDown
     {
         CarEngine();        
     }
-
 
     private void PlayerInput()
     {
@@ -428,5 +430,34 @@ public class PlayerInputs : MonoBehaviour, IPushBack, ISlowDown
     {
         // Return to original speed
         speedController = defaultSpeedControllerVal;
+    }
+
+    public float GetNextCheckPointDist()
+    {
+        return distToNextCheckPoint;
+    }
+
+    public int GetLapIndex()
+    {
+        return lapIndex;
+    }
+    public int GetCheckPointIndex()
+    {
+        return nextCheckpointIndex;
+    }
+
+    public void SetDistToNextCheckPoint(float dist)
+    {
+        distToNextCheckPoint = dist;
+    }
+
+    public void SetLapIndex(int i)
+    {
+        lapIndex = i;
+    }
+
+    public void SetNextCheckPointIndex(int i)
+    {
+        nextCheckpointIndex = i;
     }
 }
