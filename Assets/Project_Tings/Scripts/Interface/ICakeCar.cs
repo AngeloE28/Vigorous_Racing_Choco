@@ -4,6 +4,9 @@ using UnityEngine;
 
 public interface ICakeCar
 {
+    // Teleporter
+    Rigidbody GetController();
+
     // Tower effect functions
     void PushBack(float backwardForce, float upwardForce, float forceMult);
     void SlowDown();

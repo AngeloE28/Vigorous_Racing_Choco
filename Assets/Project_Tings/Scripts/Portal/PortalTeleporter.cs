@@ -47,38 +47,22 @@ public class PortalTeleporter : MonoBehaviour
                 // Car has moved across the portal
                 if (dotProduct < 0.0f)
                 {
-                    // Teleport car
-                    var m = portalExitParent.transform.localToWorldMatrix * portalParent.worldToLocalMatrix * currentCar.car.transform.localToWorldMatrix;
+                    // Teleport car                    
                     float rotationDiff = -Quaternion.Angle(transform.rotation, portalExitParent.rotation);
                     
                     // Check if this portal should turn the car around
                     if (turnCarAround)
                         rotationDiff += 180;                    
-                    
-                    // Get the player and ai scripts
-                    var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
-                    var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
-
-                    // Check for player
-                    if (playerController != null && aiController == null)
+                                        
+                    var carController = currentCar.car.gameObject.GetComponent<ICakeCar>();
+                    if (carController != null)
                     {
-                        // Rotate the player
+                        // Rotate the car
                         currentCar.car.transform.Rotate(Vector3.up, rotationDiff);
 
-                        // Teleport the player
+                        // Teleport the car
                         Vector3 posOffset = Quaternion.Euler(0.0f, rotationDiff, 0.0f) * portalToCar;
-                        playerController.GetCarController().gameObject.transform.position = portalExitCollider.position + posOffset;
-                        currentCar.overLapped = false;
-                    }
-                    // Check for ai
-                    else if (aiController != null && playerController == null)
-                    {
-                        // Rotate the player
-                        currentCar.car.transform.Rotate(Vector3.up, rotationDiff);
-
-                        // Teleport the player
-                        Vector3 posOffset = Quaternion.Euler(0.0f, rotationDiff, 0.0f) * portalToCar;
-                        aiController.GetController().gameObject.transform.position = portalExitCollider.position + posOffset;
+                        carController.GetController().gameObject.transform.position = portalExitCollider.position + posOffset;
                         currentCar.overLapped = false;
                     }
                     else
@@ -91,36 +75,22 @@ public class PortalTeleporter : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-
         if (other.tag == "Car")
         {
             for (int i = 0; i < allCars.Length; i++)
             {
-                CakeCar currentCar = cakeCars[i];
-
-                // Get player and ai script
-                var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
-                var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
-                // Check for player
-                if (playerController != null && aiController == null)
+                CakeCar currentCar = cakeCars[i];                
+                var carController = currentCar.car.gameObject.GetComponent<ICakeCar>();
+                                
+                if (carController != null)
                 {
-                    if (playerController.GetCarController().gameObject == other.gameObject)
-                    {
-                        currentCar.overLapped = true;
-                        cakeCars[i] = currentCar;
-                        continue; // Its the player, skip this iteration
-                    }
-                }
-                // Check for ai
-                else if (aiController != null && playerController == null)
-                {
-                    if (aiController.GetController().gameObject == other.gameObject)
+                    if (carController.GetController().gameObject == other.gameObject)
                     {
                         currentCar.overLapped = true;
                         cakeCars[i] = currentCar;
                         continue;
                     }
-                }
+                }                
                 else
                     continue; // Unknown gameObject, skip this iteration
             }
@@ -134,29 +104,17 @@ public class PortalTeleporter : MonoBehaviour
             for (int i = 0; i < allCars.Length; i++)
             {
                 CakeCar currentCar = cakeCars[i];
-                // Get player and ai script
-                var playerController = currentCar.car.gameObject.GetComponent<PlayerInputs>();
-                var aiController = currentCar.car.gameObject.GetComponent<CarAI>();
-                // Check for player
-                if (playerController != null && aiController == null)
+                // Get the controller
+                var carController = currentCar.car.gameObject.GetComponent<ICakeCar>();               
+                if (carController != null)
                 {
-                    if (playerController.GetCarController().gameObject == other.gameObject)
-                    {
+                    if(carController.GetController().gameObject == other.gameObject)
+                    { 
                         currentCar.overLapped = false;
                         cakeCars[i] = currentCar;
-                        continue; // Its the player, skip this iteration
-                    }
-                }
-                // Check for ai
-                else if (aiController != null && playerController == null)
-                {
-                    if (aiController.GetController().gameObject == other.gameObject)
-                    {
-                        cakeCars[i] = currentCar;
-                        currentCar.overLapped = true;
                         continue;
                     }
-                }
+                }                
                 else
                     continue; // Unknown gameObject, skip this iteration
             }

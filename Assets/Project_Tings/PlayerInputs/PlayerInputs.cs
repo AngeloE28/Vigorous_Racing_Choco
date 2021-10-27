@@ -408,7 +408,7 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
         return speedInput;
     }
 
-    public Rigidbody GetCarController()
+    public Rigidbody GetController()
     {
         return carControllerRB;
     }
