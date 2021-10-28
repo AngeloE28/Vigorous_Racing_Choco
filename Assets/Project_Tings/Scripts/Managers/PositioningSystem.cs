@@ -8,7 +8,7 @@ public class PositioningSystem : MonoBehaviour
     [SerializeField] private GameObject[] cars;
     private float[] carPositions;    
     private ICakeCar[] cakeCars;    
-    private int playerCurrentPos;
+    [SerializeField] private int playerCurrentPos;
     private float playerPos;    
     
     // Controllers
