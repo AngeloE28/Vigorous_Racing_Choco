@@ -94,6 +94,13 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     void Update()
     {
         PlayerInput();       
+        switch(lapIndex)
+        {
+            case 4:
+                this.gameObject.GetComponent<CarAI>().enabled = true;
+                speedController = 0;
+                break;
+        }
     }
 
     private void FixedUpdate()
