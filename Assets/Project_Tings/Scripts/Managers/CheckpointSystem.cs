@@ -26,7 +26,7 @@ public class CheckpointSystem : MonoBehaviour
         {
             SingleCheckpoint checkPoint = cp.GetComponent<SingleCheckpoint>();
             checkPoint.SetTrackCheckpiont(this);
-            this.checkPoints.Add(checkPoint);
+            this.checkPoints.Add(checkPoint);            
         }
         
         CalcCarCheckpointDist();        
