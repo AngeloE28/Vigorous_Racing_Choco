@@ -75,7 +75,7 @@ public class PortalTeleporter : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Car")
+        if (other.tag == "Car" || other.tag == "ThirdPlace")
         {
             for (int i = 0; i < allCars.Length; i++)
             {
@@ -99,7 +99,7 @@ public class PortalTeleporter : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if(other.tag == "Car")
+        if(other.tag == "Car" || other.tag == "ThirdPlace")
         {
             for (int i = 0; i < allCars.Length; i++)
             {

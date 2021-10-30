@@ -5,7 +5,9 @@ using UnityEngine.VFX;
 
 public class ChocolateSlow : MonoBehaviour
 {
-    [SerializeField] private GameObject vfxChocolateGameobject;    
+    [SerializeField] private GameObject vfxChocolateGameobject;
+    [SerializeField] private float updateFreq = 0.15f;
+    [SerializeField] private string carTag = "Car";
     private VisualEffect vfxChocolate;
     private bool activate = false;
 
@@ -16,18 +18,18 @@ public class ChocolateSlow : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(FireChocolate), 0.0f, 0.5f);
+        InvokeRepeating(nameof(FireChocolate), 0.0f, updateFreq);
     }
 
     private void Update()
     {
-        float val = 0.0f;
+        float chocolateVfxRate = 0.0f;
         if (activate)
-            val = Mathf.Lerp(val, 128.0f, 100.0f);
+            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, 128.0f, 100.0f);
         else
-            val = Mathf.Lerp(val, 0.0f, 10.0f);
+            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, 0.0f, 10.0f);
 
-        vfxChocolate.SetFloat("Rate", val);        
+        vfxChocolate.SetFloat("Rate", chocolateVfxRate);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -50,7 +52,7 @@ public class ChocolateSlow : MonoBehaviour
 
     private void FireChocolate()
     {
-        GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");
+        GameObject[] cars = GameObject.FindGameObjectsWithTag(carTag);
         List<GameObject> cs = new List<GameObject>();
 
         foreach(GameObject c in cars)

@@ -3,21 +3,32 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+// Placements
+enum Positions
+{
+    firstPlace = 1,
+    secondPlace = 2,
+    thirdPlace = 3
+}    
+
 public class PositioningSystem : MonoBehaviour
 {
     [SerializeField] private GameObject[] cars;
+    [SerializeField] private int playerCurrentPos;
+    [SerializeField] private String carTag = "Car";
+    [SerializeField] private String thirdPlaceTag = "ThirdPlace";
     private float[] carPositions;    
     private ICakeCar[] cakeCars;    
-    [SerializeField] private int playerCurrentPos;
-    private float playerPos;    
-    
-    // Controllers
-    private PlayerInputs player;    
+    private float playerPos;
 
-    // Placements
-    private int firstPlace = 1;
-    private int secondPlace = 2;
-    private int thirdPlace = 3;
+    // Controllers    
+    private PlayerInputs player;
+
+    // Placements    
+    private const int firstPlace = 1;
+    private const int secondPlace = 2;
+    private const int thirdPlace = 3;
+    
 
     private void Awake()
     {
@@ -34,7 +45,7 @@ public class PositioningSystem : MonoBehaviour
                 cakeCars[i] = cakeCar;
             }
         }
-
+        
         player = cars[0].GetComponent<PlayerInputs>();        
     }
 
@@ -42,6 +53,7 @@ public class PositioningSystem : MonoBehaviour
     void LateUpdate()
     {
         CarPositions();
+        SetPlayerTag();
     }
 
     private void CalcCarRankings()
@@ -108,11 +120,25 @@ public class PositioningSystem : MonoBehaviour
                 break;
             case 2:
                 carRank = thirdPlace;
-                break;
-            case 3:
-                carRank = 4;
-                break;
+                break;            
         }
         return carRank;
+    }
+
+    private void SetPlayerTag()
+    {
+        
+        switch(playerCurrentPos)
+        {
+            case firstPlace:
+                player.GetController().tag = carTag;
+                break;
+            case secondPlace:
+                player.GetController().tag = carTag;
+                break;
+            case thirdPlace:
+                player.GetController().tag = thirdPlaceTag;
+                break;
+        }
     }
 }

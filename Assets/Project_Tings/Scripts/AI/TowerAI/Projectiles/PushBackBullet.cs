@@ -19,8 +19,8 @@ public class PushBackBullet : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        Vector3 dir = (target.position - transform.position).normalized * bulletSpeed;
+                
+        Vector3 dir = (target.position - transform.position).normalized * bulletSpeed;        
         rb = GetComponent<Rigidbody>();
         rb.velocity = dir;
         Destroy(gameObject, 5.0f);
