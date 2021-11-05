@@ -42,7 +42,9 @@ public class CarAI : MonoBehaviour, ICakeCar
 
 
     void Awake()
-    {
+    {        
+        lapIndex = 1;        
+
         Transform[] wayPoints = path.GetComponentsInChildren<Transform>();
         pathNodes = new List<Transform>();
 
@@ -56,7 +58,9 @@ public class CarAI : MonoBehaviour, ICakeCar
 
     // Start is called before the first frame update
     void Start()
-    {      
+    {
+        speedController = 0.0f;
+
         // Unparent car controller
         carAIRb.transform.parent = null;
     }
@@ -182,6 +186,11 @@ public class CarAI : MonoBehaviour, ICakeCar
         {
             t.Rotate(Vector3.right * carAIRb.velocity.magnitude * turnMultiplier * Time.deltaTime);
         }
+    }
+
+    public void SetSpeedController(float speed)
+    {
+        speedController = speed;
     }
 
     public Rigidbody GetController()

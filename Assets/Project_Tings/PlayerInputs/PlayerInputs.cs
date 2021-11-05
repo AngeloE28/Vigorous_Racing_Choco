@@ -6,12 +6,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputs : MonoBehaviour, ICakeCar
 {
-    [Header("Controllers and Managers")]
+    [Header("Controllers and Managers")]    
     [SerializeField] private PlayerCamera cameraController;
     private GamepadVibration gamepadVib;
-    private float distToNextCheckPoint;
+    private float distToNextCheckPoint;    
     private int nextCheckpointIndex;
-    private int lapIndex;
+    private int lapIndex;    
 
     // Player controllers
     [Header("Car Controller")]
@@ -68,13 +68,15 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     [SerializeField] private Transform[] backWheels;
     private float wheelSpinDirection;
 
+    // Public variables
+    public int playerPlacement { get; set; }
 
     private void Awake()
     {
         // Setup player input actions and subscribe to necessary action delegates
         playerInputActions = new PlayerInputActions();
-        playerInputActions.Player.Enable();
-        playerInputActions.Player.ResetOrientation.performed += ResetOrientation;
+        playerInputActions.Enable();
+        playerInputActions.Player.ResetOrientation.performed += ResetOrientation;        
 
         gamepadVib = GetComponent<GamepadVibration>();     
     }
@@ -83,8 +85,10 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     // Start is called before the first frame update
     void Start()
     {
+        lapIndex = 1; // Default to one to not display 0
+        playerPlacement = 3; // Player default position is 3rd
         turnController = defaultTurnControllerVal; // Default to 1
-        speedController = defaultSpeedControllerVal; // Default to 1
+        speedController = 0.0f;
 
         // Unparent the car controller that will be followed
         carControllerRB.transform.parent = null;
@@ -93,14 +97,7 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     // Update is called once per frame
     void Update()
     {
-        PlayerInput();       
-        switch(lapIndex)
-        {
-            case 4:
-                this.gameObject.GetComponent<CarAI>().enabled = true;
-                speedController = 0;
-                break;
-        }
+        PlayerInput();        
     }
 
     private void FixedUpdate()
@@ -408,11 +405,11 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     {
         // Returns the player input actions
         return playerInputActions;
-    }
-        
-    public float GetSpeedInput()
+    }      
+
+    public void SetSpeedController(float speed)
     {
-        return speedInput;
+        speedController = speed;
     }
 
     public Rigidbody GetController()

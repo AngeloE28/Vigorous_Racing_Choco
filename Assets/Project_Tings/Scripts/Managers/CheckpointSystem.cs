@@ -18,7 +18,7 @@ public class CheckpointSystem : MonoBehaviour
         foreach(var t in cars)
         {
             nextCheckPointIndexes.Add(0);
-            lapCounters.Add(0);            
+            lapCounters.Add(1); // Cars start with a lap index of 1
         }
 
         Transform checkPoints = transform.Find("CheckPoint");

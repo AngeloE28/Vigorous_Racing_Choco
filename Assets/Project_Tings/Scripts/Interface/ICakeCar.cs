@@ -4,6 +4,9 @@ using UnityEngine;
 
 public interface ICakeCar
 {
+    // Gamemanager
+    void SetSpeedController(float speed);
+
     // Teleporter
     Rigidbody GetController();
 

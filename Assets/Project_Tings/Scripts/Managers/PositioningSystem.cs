@@ -65,7 +65,7 @@ public class PositioningSystem : MonoBehaviour
         }
         playerPos = player.GetComponent<ICakeCar>().GetNextCheckPointDist();
         Array.Sort(carPositions);
-        playerCurrentPos = CalcPlayerRank(playerPos);
+        player.playerPlacement = CalcPlayerRank(playerPos);
     }
 
     private void CarPositions()
