@@ -23,6 +23,7 @@ public class CarAI : MonoBehaviour, ICakeCar
     [SerializeField] private float maxDistFromWaypoint = 7.5f;    
     private float speedController = 1.0f;
     private float defaultSpeedControllerVal = 1.0f;
+    private float aiSpeedInput;
 
     // AI Controls
     private float aiTurnInput;
@@ -138,6 +139,7 @@ public class CarAI : MonoBehaviour, ICakeCar
         Vector3 moveDir = (pathNodes[currentNode].position - transform.position).normalized;
 
         Vector3 desiredVelocity = moveDir * forwardAccel * accelMultiplier * speedController;
+        aiSpeedInput = desiredVelocity.magnitude;
         ApplySteer(desiredVelocity);        
     }
 
@@ -187,6 +189,18 @@ public class CarAI : MonoBehaviour, ICakeCar
             t.Rotate(Vector3.right * carAIRb.velocity.magnitude * turnMultiplier * Time.deltaTime);
         }
     }
+
+    public bool GetIsGroundedState()
+    {
+        return isGrounded;
+    }
+
+    public float GetAISpeedInput()
+    {
+        return aiSpeedInput;
+    }
+
+    #region ICakeCar Functions
 
     public void SetSpeedController(float speed)
     {
@@ -245,4 +259,5 @@ public class CarAI : MonoBehaviour, ICakeCar
     {
         distToNextCheckPoint = dist;
     }
+    #endregion
 }

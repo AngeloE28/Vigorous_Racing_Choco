@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float countDownTimer = 3.0f;
     [SerializeField] private float goMsgTimer = 1.5f;
     [SerializeField] private float finalLapMsgTimer = 1.5f;
-    private const int LAPSNEEDED = 1;
+    private const int LAPSNEEDED = 3;
     private bool isGameRunning;
     private bool isGamePaused;    
 
@@ -42,7 +42,8 @@ public class GameManager : MonoBehaviour
     [Header("Game Over UI")]
     [SerializeField] private GameObject gameOverFirstButton;
     [SerializeField] private GameObject gameOverWindow;
-    [SerializeField] private GameObject standingWindow;    
+    [SerializeField] private GameObject standingWindow;
+    [SerializeField] private TMP_Text continueText;
     [SerializeField] private TMP_Text firstPlace;
     [SerializeField] private TMP_Text secondPlace;
     [SerializeField] private TMP_Text thirdPlace;    
@@ -213,7 +214,7 @@ public class GameManager : MonoBehaviour
                 break;
             case 2:
                 if (cakeCars[1] == player.gameObject)
-                    firstPlace.text = "You";
+                    secondPlace.text = "You";
                 else
                     secondPlace.text = cakeCars[1].name.ToString();                
 
@@ -221,7 +222,7 @@ public class GameManager : MonoBehaviour
                 break;
             case 3:
                 if (cakeCars[2] == player.gameObject)
-                    firstPlace.text = "You";
+                    thirdPlace.text = "You";
                 else
                     thirdPlace.text = cakeCars[2].name.ToString();                
                 break;
@@ -249,7 +250,15 @@ public class GameManager : MonoBehaviour
     {        
         if(standingWindow.activeSelf)
         {
-            if (Gamepad.current.buttonSouth.isPressed)
+            Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();
+            if (gamePadNavigation != Vector2.zero)
+                continueText.text = "Press X to Continue";
+
+            Vector2 mousePos = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+            if (Input.anyKey || mousePos != Vector2.zero)
+                continueText.text = "Press Space to Continue";
+
+            if (Gamepad.current.buttonSouth.isPressed || Keyboard.current.spaceKey.isPressed)
             {
                 standingWindowCloseTimer = 0.0f;                
                 standingWindow.SetActive(false);

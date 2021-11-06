@@ -360,11 +360,33 @@ public class PlayerInputActions : IInputActionCollection
                 },
                 {
                     ""name"": """",
+                    ""id"": ""ce160087-0a45-4303-80df-d74b4ddc66b8"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Drift"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""ef08963d-2be2-4f83-843c-cac0237066df"",
                     ""path"": ""<Gamepad>/dpad/up"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
+                    ""action"": ""ResetOrientation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1b60f183-03d1-4289-97b2-edec4c1d4d9e"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""ResetOrientation"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false

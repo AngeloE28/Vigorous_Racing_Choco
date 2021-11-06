@@ -238,6 +238,8 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
         }
     }
 
+    #region Boost
+
     private void DriftBoost(float turnInput)
     {
         float driftButton = playerInputActions.Player.Drift.ReadValue<float>();       
@@ -385,6 +387,13 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
         gamepadVib.SetShakeGamepadState(false);
     }
 
+    #endregion
+
+    public float GetSpeedInput()
+    {
+        return speedInput;
+    }
+
     public bool GetIsGroundedState()
     {
         // Get the isGrounded boolean
@@ -405,7 +414,9 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     {
         // Returns the player input actions
         return playerInputActions;
-    }      
+    }
+
+    #region ICakeCar Functions
 
     public void SetSpeedController(float speed)
     {
@@ -464,4 +475,6 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     {
         nextCheckpointIndex = i;
     }
+
+    #endregion
 }

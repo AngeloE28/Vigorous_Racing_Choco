@@ -4,24 +4,39 @@ using UnityEngine;
 
 public class EffectManager : MonoBehaviour
 {
-    [SerializeField] private GameObject car;
+    [Header("Car GameObject")]
+    [SerializeField] private GameObject car;    
+
+    [Header("Tire marks")]
     [SerializeField] private TrailRenderer[] tireMarks;
     private bool isTireMarks = false;
-    // Start is called before the first frame update
-    void Start()
+
+    [Header("Dust Trails")]
+    [SerializeField] private float maxEmission = 25.0f;
+    [SerializeField] private ParticleSystem[] dustTrails;    
+
+    // Player or ai scripts
+    private PlayerInputs player;
+    private CarAI carAI;
+
+
+    private void Awake()
     {
-        
+        player = car.GetComponent<PlayerInputs>();
+        carAI = car.GetComponent<CarAI>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        CheckDrift();        
+        CheckDrift();
+        DustTrail();
     }
 
+    #region Drift Marks
+
     private void CheckDrift()
-    {
-        var player = car.GetComponent<PlayerInputs>();
+    {        
         if (player != null)
         {
             if (player.GetIsDrifting())
@@ -54,4 +69,46 @@ public class EffectManager : MonoBehaviour
         }
         isTireMarks = false;
     }
+
+    #endregion
+
+    #region Dust Trail
+
+    private void DustTrail()
+    {        
+        if(player != null && player.enabled)
+        {
+            float emissionRate = 0.0f;
+            if (player.GetIsGroundedState() && player.GetSpeedInput() != 0.0f)
+                emissionRate = maxEmission;
+
+            if (!player.GetIsGroundedState())
+                emissionRate = 0.0f;
+
+            EmitDustTrail(emissionRate);
+        }
+
+        if(carAI!= null && carAI.enabled)
+        {
+            float emissionRate = 0.0f;
+            if (carAI.GetIsGroundedState() && carAI.GetAISpeedInput() != 0.0f)
+                emissionRate = maxEmission;
+
+            if (!carAI.GetIsGroundedState())
+                emissionRate = 0.0f;
+
+            EmitDustTrail(emissionRate);
+        }               
+    }
+
+    private void EmitDustTrail(float emissionRate)
+    {
+        foreach (ParticleSystem trail in dustTrails)
+        {
+            var emissionModule = trail.emission;
+            emissionModule.rateOverTime = emissionRate;
+        }
+    }
+
+    #endregion
 }
