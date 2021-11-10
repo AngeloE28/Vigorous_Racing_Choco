@@ -33,5 +33,5 @@ Material:
     m_Colors:
     - Color_5D765A31: {r: 2.9960785, g: 2.9960785, b: 2.9960785, a: 1}
     - Vector2_3CAA386C: {r: 0, g: 0.15, b: 0, a: 0}
-    - _Emission: {r: 0.8603976, g: 0.44146055, b: 0.37839475, a: 1}
+    - _Emission: {r: 0.6933962, g: 1, b: 0.97358876, a: 1}
   m_BuildTextureStacks: []
