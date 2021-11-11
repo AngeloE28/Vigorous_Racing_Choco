@@ -9,21 +9,25 @@ public class PushBackBullet : MonoBehaviour
     [SerializeField] private float upwardForce = 30.0f;
     [SerializeField] private float backwardForce = 150.0f;
     [SerializeField] private float forceMult = 1000.0f;
+    [SerializeField] private float bulletLife = 5.0f;
     private Transform target;
     private Rigidbody rb;
 
+    [Header("Effects")]    
+    [SerializeField] private ParticleSystem explosionEffect;
+
     private void Start()
-    {
+    {        
         if (target == null)
-        {
+        {            
             Destroy(gameObject);
             return;
         }
                 
         Vector3 dir = (target.position - transform.position).normalized * bulletSpeed;        
         rb = GetComponent<Rigidbody>();
-        rb.velocity = dir;
-        Destroy(gameObject, 5.0f);
+        rb.velocity = dir;        
+        Destroy(gameObject, bulletLife);
     }
 
     public void GetTarget(Transform target)
@@ -36,8 +40,10 @@ public class PushBackBullet : MonoBehaviour
         ICakeCar car = other.GetComponent<ICakeCar>();
         if(car != null)
         {
-            car.PushBack(backwardForce, upwardForce, forceMult);
-            Destroy(gameObject);
+            ParticleSystem explode = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            explode.Play();
+            car.PushBack(backwardForce, upwardForce, forceMult);            
+            Destroy(gameObject);            
         }
-    }
+    }    
 }

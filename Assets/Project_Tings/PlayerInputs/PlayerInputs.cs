@@ -66,7 +66,7 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     [SerializeField] private Transform frontLeftWheelModel;
     [SerializeField] private Transform frontRightWheelModel;
     [SerializeField] private Transform[] backWheels;
-    private float wheelSpinDirection;
+    private float wheelSpinDirection;   
 
     // Public variables
     public int playerPlacement { get; set; }

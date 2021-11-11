@@ -9,7 +9,11 @@ public class HomingPushBackBullet : MonoBehaviour
     [SerializeField] private float upwardForce = 30.0f;
     [SerializeField] private float backwardForce = 150.0f;
     [SerializeField] private float forceMult = 1000.0f;
-    private Transform target;    
+    private Transform target;
+
+    [Header("Effects")]
+    [SerializeField] private ParticleSystem explosionEffect;
+
     public void GetTarget(Transform target)
     {
         this.target = target;
@@ -34,6 +38,8 @@ public class HomingPushBackBullet : MonoBehaviour
         ICakeCar car = other.GetComponent<ICakeCar>();
         if (car != null)
         {
+            ParticleSystem explode = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            explode.Play();
             car.PushBack(backwardForce, upwardForce, forceMult);
             Destroy(gameObject);
         }
