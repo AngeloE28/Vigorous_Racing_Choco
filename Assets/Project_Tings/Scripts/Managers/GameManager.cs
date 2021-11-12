@@ -9,6 +9,8 @@ using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private SceneLoader sceneLoader;
+
     [Header("Player and AIs")]
     [SerializeField] private PlayerInputs player;
     [SerializeField] private CarAI playerAI;
@@ -360,14 +362,14 @@ public class GameManager : MonoBehaviour
     }
 
     public void Restart()
-    {        
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    {
+        sceneLoader.LoadScene(Scene.Game);
     }
 
     public void Quit()
     {
         Time.timeScale = 1.0f;
         // Go back to the main menu
-        SceneManager.LoadScene(0);   
+        sceneLoader.LoadScene(Scene.MainMenu);   
     }
 }
