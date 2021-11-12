@@ -20,6 +20,8 @@ public class TowerAI : MonoBehaviour
     private float fireCountdown = 0.0f;
     private Transform targetCar;
 
+    [Header("Effects")]
+    [SerializeField] private ParticleSystem muzzleFlash;
 
     // Start is called before the first frame update
     void Start()
@@ -49,6 +51,7 @@ public class TowerAI : MonoBehaviour
     private void Shoot()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        muzzleFlash.Play();
         if (!isBulletHoming)
         {
             PushBackBullet pbb = bullet.GetComponent<PushBackBullet>();
