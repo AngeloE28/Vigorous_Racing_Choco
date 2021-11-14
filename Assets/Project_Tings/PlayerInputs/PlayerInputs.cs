@@ -389,6 +389,8 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
 
     #endregion
 
+    #region Getters
+
     public float GetSpeedInput()
     {
         return speedInput;
@@ -410,11 +412,28 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
         return isDrifiting;
     }
 
+    public float GetDriftTotal()
+    {
+        return driftTotal;
+    }
+
+    public float GetMinDrift()
+    {
+        return minDriftBoostTime;
+    }
+
+    public float GetMaxDrift()
+    {
+        return maxDriftBoostTime;
+    }
+
     public PlayerInputActions GetPlayerInputActions()
     {
         // Returns the player input actions
         return playerInputActions;
     }
+
+    #endregion
 
     #region ICakeCar Functions
 

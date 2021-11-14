@@ -12,8 +12,18 @@ public class EffectManager : MonoBehaviour
     private bool isTireMarks = false;
 
     [Header("Dust Trails")]
-    [SerializeField] private float maxEmission = 25.0f;
-    [SerializeField] private ParticleSystem[] dustTrails;    
+    [SerializeField] private float maxDustEmission = 25.0f;
+    [SerializeField] private ParticleSystem[] dustTrails;
+
+
+    [Header("Drift Sparks")]
+    [SerializeField] private float maxSparkEmission = 10.0f;    
+    [SerializeField] private ParticleSystem[] sparks;
+    [SerializeField] private Renderer[] sparksRenderer;
+    [ColorUsage(true, true)]
+    [SerializeField] private Color minBoostColor;    
+    [ColorUsage(true, true)]
+    [SerializeField] private Color maxBoostColor;
 
     // Player or ai scripts
     private PlayerInputs player;
@@ -31,16 +41,22 @@ public class EffectManager : MonoBehaviour
     {
         CheckDrift();
         DustTrail();
+        SparksManager();
     }
 
-    #region Drift Marks
+#region Drift Marks
 
     private void CheckDrift()
     {        
         if (player != null)
         {
-            if (player.GetIsDrifting())
-                StartTireMarkEmitter();
+            if (player.GetIsGroundedState())
+            {
+                if (player.GetIsDrifting())
+                    StartTireMarkEmitter();
+                else
+                    StopTireMarkEmitter();
+            }
             else
                 StopTireMarkEmitter();
         }
@@ -70,9 +86,9 @@ public class EffectManager : MonoBehaviour
         isTireMarks = false;
     }
 
-    #endregion
+#endregion
 
-    #region Dust Trail
+#region Dust Trail
 
     private void DustTrail()
     {        
@@ -80,7 +96,7 @@ public class EffectManager : MonoBehaviour
         {
             float emissionRate = 0.0f;
             if (player.GetIsGroundedState() && player.GetSpeedInput() != 0.0f)
-                emissionRate = maxEmission;
+                emissionRate = maxDustEmission;
 
             if (!player.GetIsGroundedState())
                 emissionRate = 0.0f;
@@ -92,7 +108,7 @@ public class EffectManager : MonoBehaviour
         {
             float emissionRate = 0.0f;
             if (carAI.GetIsGroundedState() && carAI.GetAISpeedInput() != 0.0f)
-                emissionRate = maxEmission;
+                emissionRate = maxDustEmission;
 
             if (!carAI.GetIsGroundedState())
                 emissionRate = 0.0f;
@@ -107,6 +123,65 @@ public class EffectManager : MonoBehaviour
         {
             var emissionModule = trail.emission;
             emissionModule.rateOverTime = emissionRate;
+        }
+    }
+
+    #endregion
+
+    #region Drift Sparks
+
+    private void SparksManager()
+    {
+        // Controll the colour of the sparks
+        SparkColourManager();
+
+        if (player != null && player.enabled)
+        {
+            float emissionRate = 0.0f;
+            if (player.GetIsGroundedState())
+            {
+                if (player.GetIsDrifting() && player.GetDriftTotal() > player.GetMinDrift())
+                    emissionRate = maxSparkEmission;
+                else
+                    emissionRate = 0.0f;
+            }
+            else
+                emissionRate = 0.0f;
+
+            EmitSparks(emissionRate);
+        }
+    }
+
+    private void EmitSparks(float emissionRate)
+    {
+        foreach(ParticleSystem spark in sparks)
+        {
+            var emissionModule = spark.emission;
+            emissionModule.rateOverTime = emissionRate;
+        }
+    }
+
+    private void SparkColourManager()
+    {
+        if (player != null)
+        {
+            if (player.GetDriftTotal() > player.GetMinDrift())
+            {
+                SetSparkColour(minBoostColor);
+            }
+            if (player.GetDriftTotal() >= player.GetMaxDrift())
+            {
+                SetSparkColour(maxBoostColor);
+            }
+        }
+    }
+
+    private void SetSparkColour(Color color)
+    {
+        foreach (var r in sparksRenderer)
+        {
+            foreach (var m in r.materials)
+                m.SetColor("_Color", color);
         }
     }
 
