@@ -79,6 +79,7 @@ public class GameManager : MonoBehaviour
         InputManagerGameOver();        
     }
 
+    #region Game Events
     private void GameStart()
     {
         // Default value of speed controller is 1
@@ -233,20 +234,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void InputManagerGameOver()
+    private void GameOverWindow()
     {
-        Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();
-        if (EventSystem.current.currentSelectedGameObject == null)
-        {
-            if (gamePadNavigation != Vector2.zero)
-            {
-                EventSystem.current.SetSelectedGameObject(null);
-                EventSystem.current.SetSelectedGameObject(gameOverFirstButton);
+        standingWindow.SetActive(false);
+        gameOverWindow.SetActive(true);
+        backgroundPanel.SetActive(true);
 
-                Cursor.visible = false;
-            }
-        }
-    }    
+        // Get first button for controller
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(gameOverFirstButton);
+    }
 
     private void CloseStandingWindow()
     {        
@@ -269,16 +266,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void GameOverWindow()
-    {
-        standingWindow.SetActive(false);
-        gameOverWindow.SetActive(true);
-        backgroundPanel.SetActive(true);
+    #endregion
 
-        // Get first button for controller
-        EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(gameOverFirstButton);
-    }
+    #region UI Events
+    public void InputManagerGameOver()
+    {
+        Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();
+        if (EventSystem.current.currentSelectedGameObject == null)
+        {
+            if (gamePadNavigation != Vector2.zero)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+                EventSystem.current.SetSelectedGameObject(gameOverFirstButton);
+
+                Cursor.visible = false;
+            }
+        }
+    }    
 
     private void CursorManager()
     {
@@ -372,4 +376,6 @@ public class GameManager : MonoBehaviour
         // Go back to the main menu
         sceneLoader.LoadScene(Scene.MainMenu);   
     }
+
+    #endregion
 }

@@ -70,7 +70,7 @@ Material:
     - _DepthFade: 12
     - _DstBlend: 0
     - _EnvironmentReflections: 1
-    - _FoamWidth: 2
+    - _FoamWidth: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0

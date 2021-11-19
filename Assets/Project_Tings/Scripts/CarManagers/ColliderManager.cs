@@ -16,5 +16,6 @@ public class ColliderManager : MonoBehaviour
         Physics.IgnoreCollision(carControllerCollider, carBodyCollider, true);
         Physics.IgnoreCollision(carCollider, carBodyCollider, true);
         carBodyCollider.transform.rotation = this.transform.rotation;
+        carBodyCollider.transform.position = carCollider.transform.position;
     }
 }

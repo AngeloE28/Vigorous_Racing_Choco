@@ -13,8 +13,7 @@ public class EffectManager : MonoBehaviour
 
     [Header("Dust Trails")]
     [SerializeField] private float maxDustEmission = 25.0f;
-    [SerializeField] private ParticleSystem[] dustTrails;
-
+    [SerializeField] private ParticleSystem[] dustTrails;   
 
     [Header("Drift Sparks")]
     [SerializeField] private float maxSparkEmission = 10.0f;    
@@ -24,6 +23,11 @@ public class EffectManager : MonoBehaviour
     [SerializeField] private Color minBoostColor;    
     [ColorUsage(true, true)]
     [SerializeField] private Color maxBoostColor;
+
+    [Header("Boost Sign")]    
+    [SerializeField] private ParticleSystem boostSign;    
+    private bool fxController = false, playFX = false;
+
 
     // Player or ai scripts
     private PlayerInputs player;
@@ -42,7 +46,8 @@ public class EffectManager : MonoBehaviour
         CheckDrift();
         DustTrail();
         SparksManager();
-    }
+        BoostSignPlayerFlip();
+    }    
 
 #region Drift Marks
 
@@ -128,7 +133,7 @@ public class EffectManager : MonoBehaviour
 
     #endregion
 
-    #region Drift Sparks
+#region Drift Sparks
 
     private void SparksManager()
     {
@@ -165,14 +170,12 @@ public class EffectManager : MonoBehaviour
     {
         if (player != null)
         {
-            if (player.GetDriftTotal() > player.GetMinDrift())
-            {
-                SetSparkColour(minBoostColor);
-            }
-            if (player.GetDriftTotal() >= player.GetMaxDrift())
-            {
-                SetSparkColour(maxBoostColor);
-            }
+            if (player.GetDriftTotal() > player.GetMinDrift())            
+                SetSparkColour(minBoostColor);                
+            
+            if (player.GetDriftTotal() >= player.GetMaxDrift())            
+                SetSparkColour(maxBoostColor);                
+                        
         }
     }
 
@@ -185,5 +188,27 @@ public class EffectManager : MonoBehaviour
         }
     }
 
-    #endregion
+#endregion
+
+#region BoostSign
+
+    private void BoostSignPlayerFlip()
+    {      
+        // Play the effect only once, everytime player can boost from flipping
+        if (player != null)
+        {
+            playFX = player.GetAllowFlipBoost();
+            if (playFX)
+                fxController = true;            
+
+            if (fxController)
+            {
+                if (!boostSign.isPlaying)
+                    boostSign.Play();
+                fxController = false;
+            }
+        }
+    }    
+
+#endregion
 }

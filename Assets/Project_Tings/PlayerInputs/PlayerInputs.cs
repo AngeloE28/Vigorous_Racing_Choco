@@ -328,9 +328,7 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     {
 
         if (isBoosting)
-        {
-            this.isBoosting = isBoosting;
-            
+        {              
             // Apply boost 
             speedController = driftBoostSpeedVal;
 
@@ -425,6 +423,11 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     public float GetMaxDrift()
     {
         return maxDriftBoostTime;
+    }
+
+    public bool GetAllowFlipBoost()
+    {
+        return allowFlipBoost;
     }
 
     public PlayerInputActions GetPlayerInputActions()
