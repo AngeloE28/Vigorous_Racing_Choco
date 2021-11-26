@@ -41,6 +41,8 @@ public class CarAI : MonoBehaviour, ICakeCar
     [SerializeField] private Transform frontRightWheelModel;
     [SerializeField] private Transform[] backWheels;
 
+    [Header("Sounds")]
+    [SerializeField] private AudioSource carSFX;
 
     void Awake()
     {        
@@ -134,13 +136,25 @@ public class CarAI : MonoBehaviour, ICakeCar
     }
 
     private void AIDrive()
-    {
+    {       
         // Drive towards waypoint and apply steering forces
         Vector3 moveDir = (pathNodes[currentNode].position - transform.position).normalized;
 
         Vector3 desiredVelocity = moveDir * forwardAccel * accelMultiplier * speedController;
         aiSpeedInput = desiredVelocity.magnitude;
-        ApplySteer(desiredVelocity);        
+        ApplySteer(desiredVelocity);
+
+        // Engine Noise
+        float minVal = 0.5f;
+        float maxVal = 1.15f;
+        float enginePitch = aiSpeedInput;
+        if (enginePitch > maxVal)
+            enginePitch = maxVal;
+
+        if (enginePitch < minVal)
+            enginePitch = minVal;
+
+        carSFX.pitch = enginePitch;
     }
 
     private void ApplySteer(Vector3 desiredVelocity)

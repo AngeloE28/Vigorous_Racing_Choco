@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.Audio;
 
 public class GameManager : MonoBehaviour
 {
@@ -49,7 +50,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text firstPlace;
     [SerializeField] private TMP_Text secondPlace;
     [SerializeField] private TMP_Text thirdPlace;    
-    [SerializeField] private float standingWindowCloseTimer = 1.0f;    
+    [SerializeField] private float standingWindowCloseTimer = 1.0f;
+
+    [Header("Sound")]
+    [SerializeField] private AudioMixer sfx;
 
     private void Awake()
     {
@@ -348,6 +352,9 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 0.0f;
 
+        // Stop all audioSources
+        sfx.SetFloat("sfxVol", -80.0f);
+
         // Get first button for controller
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(pauseFirstButton);
@@ -362,17 +369,25 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 1.0f;
 
+        // Resume all audiosources        
+        sfx.SetFloat("sfxVol", 0.0f);        
+        
         isGamePaused = false;
     }
 
     public void Restart()
     {
+        // Make sure volume is normal
+        sfx.SetFloat("sfxVol", 0.0f);
         sceneLoader.LoadScene(Scene.Game);
     }
 
     public void Quit()
     {
         Time.timeScale = 1.0f;
+        // Make sure volume is normal
+        sfx.SetFloat("sfxVol", 0.0f);
+
         // Go back to the main menu
         sceneLoader.LoadScene(Scene.MainMenu);   
     }

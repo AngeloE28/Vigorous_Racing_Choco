@@ -66,7 +66,10 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     [SerializeField] private Transform frontLeftWheelModel;
     [SerializeField] private Transform frontRightWheelModel;
     [SerializeField] private Transform[] backWheels;
-    private float wheelSpinDirection;   
+    private float wheelSpinDirection;       
+
+    [Header("Sounds")]
+    [SerializeField] private AudioSource carSFX;    
 
     // Public variables
     public int playerPlacement { get; set; }
@@ -111,18 +114,39 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
         speedInput = 0.0f;        
 
         float inputAccelerate = playerInputActions.Player.Accelerate.ReadValue<float>();
-        
+        float enginePitch = Mathf.Abs(inputAccelerate) + 0.15f;
+
         // Going forward
         if (inputAccelerate > 0)
         {
-            speedInput = inputAccelerate * forwardAccel * accelMultiplier * speedController;
+            speedInput = inputAccelerate * forwardAccel * accelMultiplier * speedController;            
             wheelSpinDirection = 1;
         }
         // Reversing
         else if (inputAccelerate < 0)
         {
-            speedInput = inputAccelerate * reverseAccel * accelMultiplier * speedController;
+            speedInput = inputAccelerate * reverseAccel * accelMultiplier * speedController;            
             wheelSpinDirection = -1;
+        }        
+
+        // Engine Noise        
+        if (!isBoosting)
+        {
+            float minVal = 0.5f;
+            float maxVal = 1.15f;
+
+            if (enginePitch > maxVal)
+                enginePitch = maxVal;
+
+            if (enginePitch < minVal)
+                enginePitch = minVal;
+            
+            carSFX.pitch = enginePitch;
+        }
+        else
+        {
+            float boostPitch = 1.5f;
+            carSFX.pitch = boostPitch;
         }
 
         // Turn input
@@ -328,7 +352,9 @@ public class PlayerInputs : MonoBehaviour, ICakeCar
     {
 
         if (isBoosting)
-        {              
+        {
+            this.isBoosting = isBoosting;
+
             // Apply boost 
             speedController = driftBoostSpeedVal;
 

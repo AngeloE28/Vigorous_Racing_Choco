@@ -1,14 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class EffectManager : MonoBehaviour
 {
     [Header("Car GameObject")]
     [SerializeField] private GameObject car;    
 
-    [Header("Tire marks")]
-    [SerializeField] private TrailRenderer[] tireMarks;
+    [Header("Drift Trails")]
+    [SerializeField] private ParticleSystem[] driftTrails;
     private bool isTireMarks = false;
 
     [Header("Dust Trails")]
@@ -29,6 +30,15 @@ public class EffectManager : MonoBehaviour
     private bool fxController = false, playFX = false;
 
 
+    [Header("Wind Boost")]
+    [SerializeField] private ParticleSystem windBoost;
+    [SerializeField] private float maxWindboostEmission = 40.0f;
+
+    [Header("Sounds")]
+    [SerializeField] private AudioSource playerSFX;
+    [SerializeField] private AudioClip driftSFX;
+    [SerializeField] private AudioClip airBoostSignSFX;
+
     // Player or ai scripts
     private PlayerInputs player;
     private CarAI carAI;
@@ -47,53 +57,44 @@ public class EffectManager : MonoBehaviour
         DustTrail();
         SparksManager();
         BoostSignPlayerFlip();
+        WindBoost();
     }    
 
-#region Drift Marks
+#region Dust Trails
 
+    // Drift Dust Trail
     private void CheckDrift()
-    {        
+    {
         if (player != null)
         {
-            if (player.GetIsGroundedState())
+            float emissionRate = 0.0f;
+            float driftVol = 0.8f;
+            if (player.GetIsDrifting() && player.GetIsGroundedState())
             {
-                if (player.GetIsDrifting())
-                    StartTireMarkEmitter();
-                else
-                    StopTireMarkEmitter();
+                emissionRate = maxDustEmission;
+
+                // Play sound
+                playerSFX.loop = true;
+                playerSFX.volume = driftVol;
+                if (playerSFX.clip == null)
+                    playerSFX.clip = driftSFX;
+                if (!playerSFX.isPlaying)
+                    playerSFX.Play();
             }
             else
-                StopTireMarkEmitter();
+            {
+                emissionRate = 0.0f;
+
+                // Reset Audiosource
+                playerSFX.volume = 1.0f;
+                playerSFX.loop = false;
+                playerSFX.clip = null;
+                playerSFX.Stop();
+            }
+
+            EmitDustTrail(emissionRate, driftTrails);
         }
     }
-
-    private void StartTireMarkEmitter()
-    {
-        if (isTireMarks)
-            return;
-        foreach(var t in tireMarks)
-        {
-            t.emitting = true;
-        }
-
-        isTireMarks = true;
-    }
-
-    private void StopTireMarkEmitter()
-    {
-        if (!isTireMarks)
-            return;
-
-        foreach(var t in tireMarks)
-        {
-            t.emitting = false;
-        }
-        isTireMarks = false;
-    }
-
-#endregion
-
-#region Dust Trail
 
     private void DustTrail()
     {        
@@ -106,7 +107,7 @@ public class EffectManager : MonoBehaviour
             if (!player.GetIsGroundedState())
                 emissionRate = 0.0f;
 
-            EmitDustTrail(emissionRate);
+            EmitDustTrail(emissionRate, dustTrails);
         }
 
         if(carAI!= null && carAI.enabled)
@@ -118,20 +119,20 @@ public class EffectManager : MonoBehaviour
             if (!carAI.GetIsGroundedState())
                 emissionRate = 0.0f;
 
-            EmitDustTrail(emissionRate);
+            EmitDustTrail(emissionRate, dustTrails);
         }               
     }
 
-    private void EmitDustTrail(float emissionRate)
+    private void EmitDustTrail(float emissionRate, ParticleSystem[] system)
     {
-        foreach (ParticleSystem trail in dustTrails)
+        foreach (ParticleSystem trail in system)
         {
             var emissionModule = trail.emission;
             emissionModule.rateOverTime = emissionRate;
         }
     }
 
-    #endregion
+#endregion
 
 #region Drift Sparks
 
@@ -199,14 +200,42 @@ public class EffectManager : MonoBehaviour
         {
             playFX = player.GetAllowFlipBoost();
             if (playFX)
-                fxController = true;            
+                fxController = true;
 
             if (fxController)
             {
+                // Play sfx
+                // Make sure its not looping
+                if (playerSFX.loop)
+                    playerSFX.loop = false;
+
                 if (!boostSign.isPlaying)
+                {
                     boostSign.Play();
+                    playerSFX.clip = airBoostSignSFX;
+                    playerSFX.Play();
+                }                
+
                 fxController = false;
             }
+        }
+    }
+
+#endregion
+
+#region WindBoost
+    private void WindBoost()
+    {
+        if(player != null)
+        {
+            float emissionRate = 0.0f;
+            var emissionModule = windBoost.emission;
+            if (player.GetIsBoosting())
+                emissionRate = maxWindboostEmission;
+            else
+                emissionRate = 0.0f;
+
+            emissionModule.rateOverTime = emissionRate;
         }
     }    
 

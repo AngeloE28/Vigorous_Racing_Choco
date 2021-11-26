@@ -38,9 +38,10 @@ public class HomingPushBackBullet : MonoBehaviour
         ICakeCar car = other.GetComponent<ICakeCar>();
         if (car != null)
         {
-            ParticleSystem explode = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            ParticleSystem explode = Instantiate(explosionEffect, transform.position, Quaternion.identity);            
             explode.Play();
             car.PushBack(backwardForce, upwardForce, forceMult);
+            
             Destroy(gameObject);
         }
     }

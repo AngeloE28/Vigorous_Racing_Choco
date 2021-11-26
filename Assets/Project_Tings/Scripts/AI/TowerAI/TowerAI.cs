@@ -23,6 +23,10 @@ public class TowerAI : MonoBehaviour
     [Header("Effects")]
     [SerializeField] private ParticleSystem muzzleFlash;
 
+    [Header("Sounds")]
+    [SerializeField] private AudioSource towerSFX;
+    [SerializeField] private AudioClip shootSound;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -51,20 +55,19 @@ public class TowerAI : MonoBehaviour
     private void Shoot()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        towerSFX.PlayOneShot(shootSound);
         muzzleFlash.Play();
         if (!isBulletHoming)
         {
             PushBackBullet pbb = bullet.GetComponent<PushBackBullet>();
             if (pbb != null)            
-                pbb.GetTarget(targetCar);
-            
+                pbb.GetTarget(targetCar);            
         }
         else
         {
             HomingPushBackBullet hpbb = bullet.GetComponent<HomingPushBackBullet>();
             if(hpbb != null)            
-                hpbb.GetTarget(targetCar);
-            
+                hpbb.GetTarget(targetCar);            
         }
     }
 

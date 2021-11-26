@@ -14,9 +14,12 @@ public class MainMenuManager : MonoBehaviour
     private PlayerInputActions inputActions;
     private float mouseInactiveTimer = 1.0f;
 
+    
+
     private void Awake()
     {
         inputActions = new PlayerInputActions();
+                
         Time.timeScale = 1.0f;        
     }
 
@@ -69,8 +72,7 @@ public class MainMenuManager : MonoBehaviour
     }
 
     public void Play()
-    {
-        // Game scene index is 1
+    {        
         sceneLoader.LoadScene(Scene.Game);
     }
 
