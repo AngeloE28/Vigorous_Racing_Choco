@@ -10,6 +10,11 @@ public class ChocolateSlow : MonoBehaviour
     [SerializeField] private string carTag = "Car";
     private VisualEffect vfxChocolate;
     private bool activate = false;
+    
+    [Header("Sounds")]
+    [SerializeField] private AudioSource sfx;
+    [SerializeField] private float targetPitch = 0.5f;
+    [SerializeField] private float targetVol = 1.0f;
 
     private void Awake()
     {
@@ -23,12 +28,34 @@ public class ChocolateSlow : MonoBehaviour
 
     private void Update()
     {
+        // VFX
         float chocolateVfxRate = 0.0f;
-        if (activate)
-            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, 128.0f, 100.0f);
-        else
-            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, 0.0f, 10.0f);
+        float targetVFXRate = 128.0f;
 
+        // Volume
+        float audioVol = 0.0f;
+        float audioPitch = 0.0f;
+
+        // Lerping vals
+        float smoothActivate = 100.0f;
+        float smoothDeactivate = 10.0f;
+
+        // Activate vfx and audio
+        if (activate)
+        {
+            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, targetVFXRate, smoothActivate);
+            audioVol = Mathf.Lerp(audioVol, targetVol, smoothActivate);
+            audioPitch = Mathf.Lerp(audioPitch, targetPitch, smoothActivate);
+        }
+        else
+        {
+            chocolateVfxRate = Mathf.Lerp(chocolateVfxRate, 0.0f, smoothDeactivate);
+            audioVol = Mathf.Lerp(audioVol, 0.0f, smoothDeactivate);
+            audioPitch = Mathf.Lerp(audioPitch, 0.0f, smoothDeactivate);
+        }
+
+        sfx.volume = audioVol;
+        sfx.pitch = audioPitch;
         vfxChocolate.SetFloat("Rate", chocolateVfxRate);
     }
 
