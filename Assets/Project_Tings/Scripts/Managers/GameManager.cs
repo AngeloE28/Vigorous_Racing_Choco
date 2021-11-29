@@ -253,15 +253,8 @@ public class GameManager : MonoBehaviour
     {        
         if(standingWindow.activeSelf)
         {
-            Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();
-            if (gamePadNavigation != Vector2.zero)
-                continueText.text = "Press X to Continue";
-
-            Vector2 mousePos = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-            if (Input.anyKey || mousePos != Vector2.zero)
-                continueText.text = "Press Space to Continue";
-
-            if (Gamepad.current.buttonSouth.isPressed || Keyboard.current.spaceKey.isPressed)
+            continueText.text = "Press Any Button to Continue";                       
+            if (Input.anyKey)
             {
                 standingWindowCloseTimer = 0.0f;                
                 standingWindow.SetActive(false);
