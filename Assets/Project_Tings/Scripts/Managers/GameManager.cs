@@ -33,10 +33,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text posTextSuffix;
 
     [Header("Pause UI")]
+    [SerializeField] private GameObject pauseUI;
     [SerializeField] private GameObject pauseFirstButton;
-    [SerializeField] private GameObject pauseWindow;
+    [SerializeField] private GameObject optionsButton;    
     [SerializeField] private GameObject backgroundPanel; // Use this panel for the gameover window aswell
     private float mouseInactiveTimer = 1.0f;
+
+    [Header("Options UI")]
+    [SerializeField] private GameObject optionsUI;
+    [SerializeField] private GameObject optionsFirstButton;
+    private GameObject currentBtn;
+
 
     [Header("Game Start UI")]
     [SerializeField] private TMP_Text goMsg;
@@ -53,7 +60,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float standingWindowCloseTimer = 1.0f;
 
     [Header("Sound")]
-    [SerializeField] private AudioMixer sfx;
+    [SerializeField] private AudioMixer audioMixer;
+    [SerializeField] private AudioSource uiSound;
+    [SerializeField] private AudioClip countdown;
+    [SerializeField] private AudioClip goSound;    
+    private float ringDelay = 0.8f;
 
     private void Awake()
     {
@@ -61,19 +72,22 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         Cursor.visible = false;
         Time.timeScale = 1.0f;
+        currentBtn = pauseFirstButton;
         cakeCars = new List<GameObject>();
+        Invoke(nameof(FirstRing), 0.1f); // Small delay at the start
     }
 
     // Start is called before the first frame update
     void Start()
     {
         player.GetPlayerInputActions().Player.PauseGame.performed += _ => GamePauseState();
-        Invoke(nameof(GameStart), countDownTimer);        
+        float countDown = countDownTimer;
+        Invoke(nameof(GameStart), countDown);                
     }
 
     // Update is called once per frame
     void Update()
-    {
+    {        
         GameStartCountDown();
         InGameUI();
         PlayerFinalLapUI();
@@ -94,31 +108,59 @@ public class GameManager : MonoBehaviour
         }        
     }
 
+    #region Rings
+    private void FirstRing()
+    {
+        float secondRingDelay = 0.6f;
+        uiSound.PlayOneShot(countdown);
+        Invoke(nameof(SecondRing), secondRingDelay);
+    }
+
+    private void SecondRing()
+    {
+        uiSound.PlayOneShot(countdown);
+        Invoke(nameof(ThirdRing), ringDelay);
+    }
+
+    private void ThirdRing()
+    {
+        uiSound.PlayOneShot(countdown);
+        Invoke(nameof(FourthRing), ringDelay);
+    }
+
+    private void FourthRing()
+    {
+        uiSound.PlayOneShot(countdown);
+        Invoke(nameof(GoRing), ringDelay);
+    }    
+
+    private void GoRing()
+    {
+        uiSound.pitch = 2.0f;
+        uiSound.PlayOneShot(goSound);        
+    }
+    #endregion Rings
+
     private void GameStartCountDown()
     {
-        if(countDownTimer > 0)
+        if (countDownTimer > 0)
         {
             goMsg.gameObject.SetActive(false);
             countDownTimer -= Time.deltaTime;
-            countDownMsg.text = Mathf.RoundToInt(countDownTimer).ToString();
-        }
+            countDownMsg.text = Mathf.RoundToInt(countDownTimer).ToString();                            
+        }        
         else
         {
             countDownMsg.gameObject.SetActive(false);
+            goMsg.gameObject.SetActive(true);            
+            Invoke(nameof(DisableGoMsg), goMsgTimer);
             countDownTimer = 0;
-        }
-
-        switch(countDownTimer)
-        {
-            case 0:
-                goMsg.gameObject.SetActive(true);
-                Invoke(nameof(DisableGoMsg), goMsgTimer);
-                break;
-        }
+        }        
     }
 
     private void DisableGoMsg()
     {
+        uiSound.pitch = 1.0f;
         goMsgTimer = 0;
         goMsg.gameObject.SetActive(false);
     }
@@ -268,13 +310,14 @@ public class GameManager : MonoBehaviour
     #region UI Events
     public void InputManagerGameOver()
     {
+        currentBtn = gameOverFirstButton;
         Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();
         if (EventSystem.current.currentSelectedGameObject == null)
         {
             if (gamePadNavigation != Vector2.zero)
             {
                 EventSystem.current.SetSelectedGameObject(null);
-                EventSystem.current.SetSelectedGameObject(gameOverFirstButton);
+                EventSystem.current.SetSelectedGameObject(currentBtn);
 
                 Cursor.visible = false;
             }
@@ -316,13 +359,18 @@ public class GameManager : MonoBehaviour
     {
         if(isGamePaused)
         {
+            if (pauseUI.activeSelf)
+                currentBtn = pauseFirstButton;
+            if (optionsUI.activeSelf)
+                currentBtn = optionsFirstButton;
+
             Vector2 gamePadNavigation = player.GetPlayerInputActions().UI.Navigate.ReadValue<Vector2>();            
             if (EventSystem.current.currentSelectedGameObject == null)
             {
                 if (gamePadNavigation != Vector2.zero)
                 {
                     EventSystem.current.SetSelectedGameObject(null);
-                    EventSystem.current.SetSelectedGameObject(pauseFirstButton);
+                    EventSystem.current.SetSelectedGameObject(currentBtn);
 
                     Cursor.visible = false;
                 }
@@ -340,38 +388,72 @@ public class GameManager : MonoBehaviour
 
     public void Pause()
     {       
-        pauseWindow.SetActive(true);
+        pauseUI.SetActive(true);
         backgroundPanel.SetActive(true);
-
+        currentBtn = pauseFirstButton;
         Time.timeScale = 0.0f;
 
         // Stop all audioSources
-        sfx.SetFloat("sfxVol", -80.0f);
+        audioMixer.SetFloat(Sounds.sfxVol.ToString(), -80.0f);
+        audioMixer.SetFloat(Sounds.musicVol.ToString(), -80.0f);
 
         // Get first button for controller
         EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(pauseFirstButton);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
         
         isGamePaused = true;
     }
 
     public void Resume()
-    {        
-        pauseWindow.SetActive(false);
-        backgroundPanel.SetActive(false);   
+    {
+        if (pauseUI.activeSelf)
+            pauseUI.SetActive(false);
+        if (backgroundPanel.activeSelf)
+            backgroundPanel.SetActive(false);
+        if (optionsUI.activeSelf)
+            optionsUI.SetActive(false);
+
+        currentBtn = pauseFirstButton;
 
         Time.timeScale = 1.0f;
 
         // Resume all audiosources        
-        sfx.SetFloat("sfxVol", 0.0f);        
-        
+        audioMixer.SetFloat(Sounds.sfxVol.ToString(), PlayerPrefs.GetFloat(Options._SFXVOL.ToString()));
+        audioMixer.SetFloat(Sounds.musicVol.ToString(), PlayerPrefs.GetFloat(Options._MUSICVOL.ToString()));
+
         isGamePaused = false;
+    }
+
+    public void OpenOptions()
+    {
+        pauseUI.SetActive(false);
+        optionsUI.SetActive(true);
+
+        // First button on main menu
+        currentBtn = optionsFirstButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void CloseOptions()
+    {
+        pauseUI.SetActive(true);
+        optionsUI.SetActive(false);
+
+        // Set current button to options button
+        // When options closes options is the first selected
+        currentBtn = optionsButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
     }
 
     public void Restart()
     {
         // Make sure volume is normal
-        sfx.SetFloat("sfxVol", 0.0f);
+        audioMixer.SetFloat(Sounds.sfxVol.ToString(), PlayerPrefs.GetFloat(Options._SFXVOL.ToString()));
+        audioMixer.SetFloat(Sounds.musicVol.ToString(), PlayerPrefs.GetFloat(Options._MUSICVOL.ToString()));
         sceneLoader.LoadScene(Scene.Game);
     }
 
@@ -379,7 +461,8 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1.0f;
         // Make sure volume is normal
-        sfx.SetFloat("sfxVol", 0.0f);
+        audioMixer.SetFloat(Sounds.sfxVol.ToString(), PlayerPrefs.GetFloat(Options._SFXVOL.ToString()));
+        audioMixer.SetFloat(Sounds.musicVol.ToString(), PlayerPrefs.GetFloat(Options._MUSICVOL.ToString()));
 
         // Go back to the main menu
         sceneLoader.LoadScene(Scene.MainMenu);   

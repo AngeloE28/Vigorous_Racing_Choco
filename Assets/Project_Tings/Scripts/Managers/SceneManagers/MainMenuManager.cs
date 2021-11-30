@@ -9,18 +9,28 @@ public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private SceneLoader sceneLoader;
 
-    [Header("UI")]    
+    [Header("MainMenu")]
+    [SerializeField] private GameObject mainMenuUI;
     [SerializeField] private GameObject playButton;
+    [SerializeField] private GameObject optionsButton;
+
+    [Header("Options")]
+    [SerializeField] private GameObject optionsUI;
+    [SerializeField] private GameObject optionsFirstButton;
     private PlayerInputActions inputActions;
     private float mouseInactiveTimer = 1.0f;
-
+    private GameObject currentBtn;
     
 
     private void Awake()
     {
         inputActions = new PlayerInputActions();
                 
-        Time.timeScale = 1.0f;        
+        Time.timeScale = 1.0f;
+        currentBtn = playButton;
+
+        mainMenuUI.SetActive(true);
+        optionsUI.SetActive(false);
     }
 
     private void OnEnable()
@@ -47,7 +57,7 @@ public class MainMenuManager : MonoBehaviour
             if(gamePadNavigation != Vector2.zero)
             {
                 EventSystem.current.SetSelectedGameObject(null);
-                EventSystem.current.SetSelectedGameObject(playButton);
+                EventSystem.current.SetSelectedGameObject(currentBtn);
 
                 Cursor.visible = false;
             }
@@ -72,8 +82,37 @@ public class MainMenuManager : MonoBehaviour
     }
 
     public void Play()
-    {        
+    {
+        // Set current button to play button
+        // When player returns to main menu play is the first selected
+        currentBtn = playButton;
+
         sceneLoader.LoadScene(Scene.Game);
+    }
+
+    public void OpenOptions()
+    {
+        mainMenuUI.SetActive(false);
+        optionsUI.SetActive(true);
+
+        // First button on main menu
+        currentBtn = optionsFirstButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void CloseOptions()
+    {
+        mainMenuUI.SetActive(true);
+        optionsUI.SetActive(false);
+
+        // Set current button to options button
+        // When options closes options is the first selected
+        currentBtn = optionsButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
     }
 
     public void Quitgame()
