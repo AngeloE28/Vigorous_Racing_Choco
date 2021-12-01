@@ -44,6 +44,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject optionsFirstButton;
     private GameObject currentBtn;
 
+    [Header("Tabs")]
+    [SerializeField] private GameObject volumeUI;
+    [SerializeField] private GameObject controlsUI;
+    [SerializeField] private GameObject controlsBtn;
+
+    [Header("Controls Tab")]
+    [SerializeField] private GameObject gameplayControlsBtn;
+    [SerializeField] private GameObject gameplayControls;
+    [SerializeField] private GameObject uiControlsBtn;
+    [SerializeField] private GameObject uiControls;
+
 
     [Header("Game Start UI")]
     [SerializeField] private TMP_Text goMsg;
@@ -412,6 +423,10 @@ public class GameManager : MonoBehaviour
             backgroundPanel.SetActive(false);
         if (optionsUI.activeSelf)
             optionsUI.SetActive(false);
+        if (volumeUI.activeSelf)
+            volumeUI.SetActive(false);
+        if (controlsUI.activeSelf)
+            controlsUI.SetActive(false);
 
         currentBtn = pauseFirstButton;
 
@@ -428,6 +443,8 @@ public class GameManager : MonoBehaviour
     {
         pauseUI.SetActive(false);
         optionsUI.SetActive(true);
+        volumeUI.SetActive(true);
+        controlsUI.SetActive(false);
 
         // First button on main menu
         currentBtn = optionsFirstButton;
@@ -440,10 +457,61 @@ public class GameManager : MonoBehaviour
     {
         pauseUI.SetActive(true);
         optionsUI.SetActive(false);
+        volumeUI.SetActive(false);
+        controlsUI.SetActive(false);
 
         // Set current button to options button
         // When options closes options is the first selected
         currentBtn = optionsButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void OpenVolumeTab()
+    {
+        if (controlsUI.activeSelf)
+            controlsUI.SetActive(false);
+        volumeUI.SetActive(true);
+
+        currentBtn = optionsFirstButton;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void OpenControlsTab()
+    {
+        if (volumeUI.activeSelf)
+            volumeUI.SetActive(false);
+        controlsUI.SetActive(true);
+
+        gameplayControls.SetActive(true);
+        uiControls.SetActive(false);
+
+        currentBtn = controlsBtn;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void ShowGameplayControsl()
+    {
+        uiControls.SetActive(false);
+        gameplayControls.SetActive(true);
+
+        currentBtn = gameplayControlsBtn;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(currentBtn);
+    }
+
+    public void ShowUIControls()
+    {
+        uiControls.SetActive(true);
+        gameplayControls.SetActive(false);
+
+        currentBtn = uiControlsBtn;
 
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(currentBtn);
